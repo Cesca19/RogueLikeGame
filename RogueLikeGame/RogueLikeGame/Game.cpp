@@ -18,7 +18,7 @@ void Game::Init() {
         for (size_t y = 0; y < _mMap[x].length(); ++y) {
             switch (_mMap[x][y]) {
             case '@': {
-                _mPlayer = std::make_shared<Player>(x, y);
+                _mPlayer = std::make_shared<Player>(x, y, '@');
                 _mCharacters.push_back(_mPlayer);
                 break;
             }
@@ -83,11 +83,18 @@ void Game::Render() {
 
     // Add navigator to the render map
     if (_mNavigator) {
-        int x = _mNavigator->GetX();
-        int y = _mNavigator->GetY();
-        if (y >= 0 && y < renderMap.size() && x >= 0 && x < renderMap[y].length()) {
-            renderMap[y][x] = _mNavigator->GetSymbol();
+        Vector2i position = _mNavigator->GetPosition();
+        if (IsValidMove(position)) {
+            renderMap[position.y][position.x] = _mNavigator->GetSymbol();
         }
+    }
+
+    if (_mPlayer) {
+        Vector2i position = _mPlayer->GetPosition();
+        if (IsValidMove(position)) {
+            renderMap[position.y][position.x] = _mPlayer->GetSymbol();
+        }
+
     }
 
     // Display the updated map
@@ -139,20 +146,23 @@ void Game::HandleInput() {
 }
 
 void Game::Move() {
-    if (_mNavigator && IsValidMove(_mNavigator->GetX(), _mNavigator->GetY())) {
+    if (_mNavigator && IsValidMove(_mNavigator->GetPosition())) {
         _mPlayer->SetPosition(_mNavigator->GetPosition());
     }
 }
 
-bool Game::IsValidMove(int x, int y) {
-    return true;
+bool Game::IsValidMove(Vector2i position) {
+    if (_mMap[position.y][position.x] == ' ') {
+        return true;
+    }
+    return false;
 }
 
 void Game::MoveNavigator(int dx, int dy) {
     if (_mNavigator) {
 	    const int newX = _mNavigator->GetX() + dx;
 	    const int newY = _mNavigator->GetY() + dy;
-        if (IsValidMove(newX, newY)) {
+        if (IsValidMove(Vector2i { newX, newY })) {
             _mNavigator->Move(dx, dy);
         }
     }

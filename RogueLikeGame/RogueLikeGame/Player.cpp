@@ -1,8 +1,9 @@
 #include "Player.h"
 
-Player::Player(int x, int y) {
-	Position.x = x;
-	Position.y = y;
+Player::Player(int x, int y, char symbol) {
+	_mPosition.x = x;
+	_mPosition.y = y;
+	_mSymbol = symbol;
 }
 
 

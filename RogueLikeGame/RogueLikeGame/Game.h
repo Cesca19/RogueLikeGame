@@ -20,7 +20,7 @@ public:
 	void Render();
 	void HandleInput();
 	void Move();
-	bool IsValidMove(int x, int y);
+	bool IsValidMove(Vector2i position);
 	void MoveNavigator(int dx, int dy);
 
 private:
