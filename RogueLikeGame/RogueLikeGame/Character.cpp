@@ -1,7 +1,8 @@
 #include "Character.h"
 
-Character::Character(int Hp, int DamageAmount, char Skin) : _mHp(Hp), _mDamageAmount(DamageAmount), _mSkin(Skin)
+Character::Character(int Hp, int DamageAmount, char Skin) : _mHp(Hp), _mDamageAmount(DamageAmount)
 {
+	_mSymbol = Skin;
 }
 
 Character::~Character()
@@ -18,4 +19,9 @@ void Character::TakeDamage(int DamageAmount)
 	_mHp -= DamageAmount;
 	if (_mHp <= 0)
 		OnDeath();
+}
+
+void Character::SetGame(void* CurrentGame)
+{
+	_mGame = CurrentGame;
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Entity.h"
+
 #include <vector>
 #include <memory>
 #include <string>
@@ -17,9 +18,12 @@ public:
 	virtual void ApplyDamage(std::shared_ptr<Character> Target, int DamageAmount);
 	virtual void TakeDamage(int DamageAmount);
 	virtual void OnDeath() = 0;
+
+	void SetGame(void* CurrentGame);
 protected:
 	int _mHp;
 	int _mDamageAmount;
-	char _mSkin;
+	void* _mGame;
+	//char _mSkin;
 };
 

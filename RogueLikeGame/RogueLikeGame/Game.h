@@ -14,15 +14,18 @@ class Game {
 public:
 	Game();
 	virtual ~Game();
-
 	void Init();
-	void LoadMap();
 	void Run();
+
+private:
+	void LoadMap();
 	void Render();
 	void HandleInput();
 	void Move();
 	bool IsValidMove(Vector2i position);
 	void MoveNavigator(int dx, int dy);
+public:
+	std::vector<std::string> UpdateCharacterPositionInMap(Character* Target, Vector2i PrevPosition);
 
 private:
 	std::shared_ptr<Player> _mPlayer = nullptr;
@@ -32,5 +35,6 @@ private:
 	std::queue<std::string> _mCombatLog;
 	std::vector<std::string> _mMap;
 
+	int _mTurn;
 };
 
