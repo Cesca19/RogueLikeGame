@@ -69,17 +69,17 @@ void Game::LoadMap() {
 }
 
 void Game::Run() {
-    while (true) {
+	while (true) {
         Render();
-        HandleInput();
-    }
+	    HandleInput();
+	}
 }
+
 
 void Game::Render() {
     system("cls");
 
     std::vector<std::string> renderMap = _mMap;
-
 
     // Add navigator to the render map
     if (_mNavigator) {
@@ -108,36 +108,33 @@ void Game::Render() {
 }
 
 void Game::HandleInput() {
+    int key = _getch();
+    int dx = 0, dy = 0;
 
-    if (_kbhit()) {
-        int key = _getch();
-        int dx = 0, dy = 0;
-
-        if (key == 224) { // Arrow key pressed
-            key = _getch(); // Get the actual arrow key code
-            switch (key) {
-            case 72: dy = -1; break; // Up arrow
-            case 80: dy = 1; break;  // Down arrow
-            case 75: dx = -1; break; // Left arrow
-            case 77: dx = 1; break;  // Right arrow
+    if (key == 224) { // Arrow key pressed
+        key = _getch(); // Get the actual arrow key code
+        switch (key) {
+        case 72: dy = -1; break; // Up arrow
+        case 80: dy = 1; break;  // Down arrow
+        case 75: dx = -1; break; // Left arrow
+        case 77: dx = 1; break;  // Right arrow
+        }
+    }
+    else {
+        switch (key) {
+        case 13: // Enter key
+            if (_mNavigator) {
+                Move();
             }
+            break;
+        case 27: // Esc key
+            exit(0);
+            break;
         }
-        else {
-            switch (key) {
-            case 13: // Enter key
-                if (_mNavigator) {
-                    Move();
-                }
-                break;
-            case 27: // Esc key
-                exit(0);
-                break;
-            }
-        }
+    }
 
-        if (dx != 0 || dy != 0) {
-            MoveNavigator(dx, dy);
-        }
+    if (dx != 0 || dy != 0) {
+        MoveNavigator(dx, dy);
     }
 }
 
