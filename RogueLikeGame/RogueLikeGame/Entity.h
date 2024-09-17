@@ -1,12 +1,18 @@
 #pragma once
+
+struct Vector2i {
+	int x, y;
+};
+
 class Entity
 {
-	struct Vector2i {
-		int x, y;
-	};
-
 public:
-	Vector2i Position;
+	Entity();
+	~Entity();
+	Vector2i GetPosition();
+	void SetPosition(Vector2i Position);
 
+protected:
+	Vector2i _mPosition;
 };
 
