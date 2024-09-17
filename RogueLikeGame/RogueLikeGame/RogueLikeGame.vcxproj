@@ -133,6 +133,7 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Golem.cpp" />
     <ClCompile Include="Monster.cpp" />
+    <ClCompile Include="Navigator.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="RogueLikeGame.cpp" />
     <ClCompile Include="Spectre.cpp" />
@@ -144,11 +145,9 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="Golem.h" />
     <ClInclude Include="Monster.h" />
+    <ClInclude Include="Navigator.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Spectre.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="RogueLikeGame.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,5 +1,7 @@
 #pragma once
-class Faucheur
+#include "Monster.h"
+
+class Faucheur : public Monster
 {
 };
 
