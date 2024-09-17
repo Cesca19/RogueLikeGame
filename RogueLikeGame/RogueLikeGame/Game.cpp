@@ -14,9 +14,9 @@ Game::~Game() {}
 
 void Game::Init() {
     LoadMap();
-    for (size_t x = 0; x < _mMap.size(); ++x) {
-        for (size_t y = 0; y < _mMap[x].length(); ++y) {
-            switch (_mMap[x][y]) {
+    for (size_t y = 0; y < _mMap.size(); ++y) {
+        for (size_t x = 0; x < _mMap[y].length(); ++x) {
+            switch (_mMap[y][x]) {
             case '@': {
                 _mPlayer = std::make_shared<Player>(x, y, '@');
                 _mCharacters.push_back(_mPlayer);
@@ -48,6 +48,14 @@ void Game::Init() {
                 break;
             }
 
+            }
+        }
+    }
+
+    for (size_t y = 0; y < _mMap.size(); ++y) {
+        for (size_t x = 0; x < _mMap[y].length(); ++x) {
+            if (_mMap[y][x] == '@' || _mMap[y][x] == '#') {
+                _mMap[y][x] = ' ';
             }
         }
     }
@@ -89,12 +97,12 @@ void Game::Render() {
         }
     }
 
+    // Add player to the render map
     if (_mPlayer) {
         Vector2i position = _mPlayer->GetPosition();
         if (IsValidMove(position)) {
             renderMap[position.y][position.x] = _mPlayer->GetSymbol();
         }
-
     }
 
     // Display the updated map
