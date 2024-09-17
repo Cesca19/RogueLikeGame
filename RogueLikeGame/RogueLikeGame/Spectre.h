@@ -12,5 +12,6 @@ public:
 	void MoveTo(Vector2i TargetPosition) override;
 	void Reward(std::vector<std::shared_ptr<Character>> GameCharacters) override;
 	Vector2i FleeFrom(std::shared_ptr<Character> Target, bool &CanFlee);
+	void OnDeath() override;
 };
 

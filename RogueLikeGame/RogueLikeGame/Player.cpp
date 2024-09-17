@@ -27,3 +27,7 @@ void Player::RestoreHp()
 	_mHp = _mMaxHp;
 }
 
+void Player::OnDeath()
+{
+}
+

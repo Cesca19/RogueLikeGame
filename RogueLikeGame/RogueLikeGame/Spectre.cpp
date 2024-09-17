@@ -47,3 +47,7 @@ Vector2i Spectre::FleeFrom(std::shared_ptr<Character> Target, bool &CanFlee)
 
 	return destination;
 }
+
+void Spectre::OnDeath()
+{
+}

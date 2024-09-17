@@ -14,31 +14,35 @@ Game::~Game() {}
 
 void Game::Init() {
     LoadMap();
-    for (size_t y = 0; y < _mMap.size(); ++y) {
-        for (size_t x = 0; x < _mMap[y].length(); ++x) {
+    for (int y = 0; y < _mMap.size(); ++y) {
+        for (int x = 0; x < _mMap[y].length(); ++x) {
             switch (_mMap[y][x]) {
             case '@': {
-                _mPlayer = std::make_shared<Player>(x, y, '@');
+                _mPlayer = std::make_shared<Player>(100, 20, '@');
+                _mPlayer->SetPosition(Vector2i{ x, y });
                 _mCharacters.push_back(_mPlayer);
                 break;
             }
                
             case 'G': {
-                auto golem = std::make_shared<Golem>();
+                auto golem = std::make_shared<Golem>(100, 20, 'G', 10);
+                golem->SetPosition(Vector2i{ x, y });
                 _mMonsters.push_back(golem);
                 _mCharacters.push_back(_mMonsters.back());
                 break;
             }
                 
             case 'S': {
-                auto spectre = std::make_shared<Spectre>();
+                auto spectre = std::make_shared<Spectre>(100, 10, 'S');
+                spectre->SetPosition(Vector2i{ x, y });
                 _mMonsters.push_back(spectre);
                 _mCharacters.push_back(_mMonsters.back());
                 break;
             }
                 
             case 'F': {
-                auto faucheur = std::make_shared<Faucheur>();
+                auto faucheur = std::make_shared<Faucheur>(100, 30, 'F');
+                faucheur->SetPosition(Vector2i{ x, y });
                 _mMonsters.push_back(faucheur);
                 _mCharacters.push_back(_mMonsters.back());
                 break;

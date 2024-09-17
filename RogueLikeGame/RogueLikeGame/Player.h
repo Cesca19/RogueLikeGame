@@ -11,6 +11,7 @@ public:
 	void MoveTo(Vector2i TargetPosition) override;
 	void InreaseDamage(int Amount);
 	void RestoreHp();
+	void OnDeath() override;
 private:
 	int _mMaxHp;
 };

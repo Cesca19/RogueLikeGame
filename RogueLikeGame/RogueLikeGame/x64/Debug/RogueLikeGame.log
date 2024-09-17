@@ -1,12 +1,2 @@
-﻿  Character.cpp
-  Entity.cpp
-  Faucheur.cpp
-  Game.cpp
-  Golem.cpp
-  Monster.cpp
-  Player.cpp
-  RogueLikeGame.cpp
-  Spectre.cpp
-  Generating Code...
-RogueLikeGame.rc(4): fatal error RC1015: cannot open include file 'resource.h'.
-  
+﻿  Game.cpp
+  RogueLikeGame.vcxproj -> C:\Users\fifam\Projets\G-TECH4\RogueLikeGame\RogueLikeGame\x64\Debug\RogueLikeGame.exe

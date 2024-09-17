@@ -12,6 +12,7 @@ public:
 	void MoveTo(Vector2i TargetPosition) override;
 	void Reward(std::vector<std::shared_ptr<Character>> GameCharacters) override;
 	void TakeDamage(int amount) override;
+	void OnDeath() override;
 private:
 	int _mResistanceWeight;
 	int _mDamageIncreaseAmount;

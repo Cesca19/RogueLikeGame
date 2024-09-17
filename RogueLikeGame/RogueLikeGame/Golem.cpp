@@ -5,6 +5,10 @@ Golem::Golem(int Hp, int DamageAmount, char Skin, int DamageIncreaseAmount) :
 {
 }
 
+Golem::~Golem()
+{
+}
+
 void Golem::Update(std::vector<std::shared_ptr<Character>> GameCharacters, std::vector<std::string> GameMap)
 {
 }
@@ -35,4 +39,8 @@ void Golem::TakeDamage(int Amount)
 	}
 	if (_mResistanceWeight < 10 || _mResistanceWeight >= 90)
 		_mResistanceWeight = 40;
+}
+
+void Golem::OnDeath()
+{
 }
