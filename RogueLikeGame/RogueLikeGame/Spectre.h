@@ -1,5 +1,7 @@
 #pragma once
-class Spectre
+#include "Monster.h"
+
+class Spectre : public Monster
 {
 };
 

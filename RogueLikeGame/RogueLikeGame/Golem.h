@@ -1,5 +1,6 @@
 #pragma once
-class Golem
-{
+#include "Monster.h"
+
+class Golem : public Monster {
 };
 

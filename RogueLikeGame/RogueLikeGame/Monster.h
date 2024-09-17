@@ -1,5 +1,6 @@
 #pragma once
-class Monster
-{
+#include "Player.h"
+
+class Monster : public Character {
 };
 

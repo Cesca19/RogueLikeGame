@@ -1,10 +1,11 @@
 #pragma once
+
+struct Vector2i {
+	int x, y;
+};
+
 class Entity
 {
-	struct Vector2i {
-		int x, y;
-	};
-
 public:
 	Vector2i Position;
 
