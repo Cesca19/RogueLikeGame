@@ -10,6 +10,7 @@ Spectre::~Spectre()
 
 void Spectre::Update(std::vector<std::shared_ptr<Character>> GameCharacters, std::vector<std::string> GameMap)
 {
+	/*
 	std::shared_ptr<Player> player = nullptr;
 	Vector2i targetPosition;
 	bool canFlee = false;
@@ -26,7 +27,7 @@ void Spectre::Update(std::vector<std::shared_ptr<Character>> GameCharacters, std
 			//_getch();
 		}
 	}
-	std::cout << "Spectre enddddd" << std::endl;
+	std::cout << "Spectre enddddd" << std::endl;*/
 }
 
 void Spectre::MoveTo(Vector2i TargetPosition)

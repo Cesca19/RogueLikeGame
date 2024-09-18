@@ -12,6 +12,8 @@ Faucheur::~Faucheur()
 void Faucheur::Update(std::vector<std::shared_ptr<Character>> GameCharacters, std::vector<std::string> GameMap)
 {
 	std::shared_ptr<Player> player = nullptr;
+	Game* game = static_cast<Game*>(_mGame);
+	Vector2i startPos = _mPosition;
 	Vector2i targetPosition;
 	for (int i = 0; i < GameCharacters.size(); i++) {
 		player = std::dynamic_pointer_cast<Player>(GameCharacters[i]);
@@ -19,7 +21,11 @@ void Faucheur::Update(std::vector<std::shared_ptr<Character>> GameCharacters, st
 			break;
 	}
 	if (player != nullptr) {
-		FindNextMove(player, GameMap);
+		if (!IsPlayerClose(player))
+			FindNextMove(player, GameMap);
+		if (startPos.x != _mPosition.x || startPos.y != _mPosition.y)
+			game->AddToActionLog("F moved from (" + std::to_string(startPos.x) + "," + std::to_string(startPos.y) + ") to (" 
+				+ std::to_string(_mPosition.x) + "," + std::to_string(_mPosition.y) + ")");
 		Attack(player);
 	}
 }
@@ -28,7 +34,7 @@ void Faucheur::Update(std::vector<std::shared_ptr<Character>> GameCharacters, st
 
 void Faucheur::MoveTo(Vector2i TargetPosition)
 {
-	Game* game = static_cast<Game*>(_mGame);
+	/* Game* game = static_cast<Game*>(_mGame);
 	int remaningMoves = _mMoveLimit;
 	if (game == nullptr)
 		exit(84);
@@ -50,8 +56,8 @@ void Faucheur::MoveTo(Vector2i TargetPosition)
 	for (; _mPosition.y > TargetPosition.y && remaningMoves > 0; remaningMoves--) {
 		_mPosition.y--;
 		game->UpdateCharacterPositionInMap(this, Vector2i{ _mPosition.x, _mPosition.y + 1 });
-	}
-	std::cout << "F moved to: (" << _mPosition.x << "," << _mPosition.y << ")" << std::endl;
+	}*/
+	//std::cout << "F moved to: (" << _mPosition.x << "," << _mPosition.y << ")" << std::endl;
 }
 
 void Faucheur::Reward(std::vector<std::shared_ptr<Character>> GameCharacters)
@@ -107,6 +113,7 @@ void Faucheur::FindNextMove(std::shared_ptr<Character> TargetPlayer, std::vector
 	std::vector<Vector2i> reachablePositions = GetReachablePosition(TargetPlayer->GetPosition(), GameMap);
 	std::vector<std::vector<Vector2i>> pathWays;
 	Game* game = static_cast<Game*>(_mGame);
+	
 
 	if (reachablePositions.size() <= 0)
 		return;
@@ -129,7 +136,6 @@ void Faucheur::FindNextMove(std::shared_ptr<Character> TargetPlayer, std::vector
 			SetPosition(pathWays[bestPath][i]);
 			game->UpdateCharacterPositionInMap(this, prevPos);
 		}
-		std::cout << "F moved to: (" << _mPosition.x << "," << _mPosition.y << ")" << std::endl;
 	}
 }
 
@@ -138,12 +144,25 @@ void Faucheur::Attack(std::shared_ptr<Character> TargetPlayer)
 	Vector2i TargetPosition = TargetPlayer->GetPosition();
 	std::vector<Vector2i> availablePositions = { {TargetPosition.x - 1, TargetPosition.y }, {TargetPosition.x + 1, TargetPosition.y},
 												{ TargetPosition.x, TargetPosition.y - 1}, {TargetPosition.x, TargetPosition.y + 1} };
+	Game* game = static_cast<Game*>(_mGame);
+
 
 	for (int i = 0; i < availablePositions.size(); i++) {
-		if (_mPosition.y == availablePositions[i].y && _mPosition.x == availablePositions[i].y) {
+		if (_mPosition.y == availablePositions[i].y && _mPosition.x == availablePositions[i].x) {
 			TargetPlayer->TakeDamage(_mDamageAmount);
-			std::cout << "F attacked the Player" << std::endl;
-			_getch();
+			game->AddToActionLog("F attacked the Hero");
 		}
 	}
+}
+
+bool Faucheur::IsPlayerClose(std::shared_ptr<Character> TargetPlayer)
+{
+	Vector2i TargetPosition = TargetPlayer->GetPosition();
+	std::vector<Vector2i> availablePositions = { {TargetPosition.x - 1, TargetPosition.y }, {TargetPosition.x + 1, TargetPosition.y},
+												{ TargetPosition.x, TargetPosition.y - 1}, {TargetPosition.x, TargetPosition.y + 1} };
+
+	for (int i = 0; i < availablePositions.size(); i++)
+		if (_mPosition.y == availablePositions[i].y && _mPosition.x == availablePositions[i].x)
+			return true;
+	return false;
 }

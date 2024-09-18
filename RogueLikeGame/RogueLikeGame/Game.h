@@ -16,7 +16,7 @@ public:
 	virtual ~Game();
 	void Init();
 	void Run();
-
+	void AddToActionLog(const std::string& action);
 private:
 	void LoadMap();
 	void Render();
@@ -32,7 +32,7 @@ private:
 	void SelectNextMonster(int direction);
 	void AttackMonster(std::vector<std::shared_ptr<Monster>>::const_reference monster);
 	void PerformAttack();
-	void AddToActionLog(const std::string& action);
+	
 
 public:
 	std::vector<std::string> UpdateCharacterPositionInMap(Character* Target, Vector2i PrevPosition);
@@ -45,7 +45,7 @@ private:
 	std::queue<std::string> _mCombatLog;
 	std::vector<std::string> _mMap;
 	std::deque<std::string> _mActionLog;
-	const size_t MAX_LOG_ENTRIES = 4;
+	const size_t MAX_LOG_ENTRIES = 8;
 
 	int _mTurn;
 	char _mAttackSymbol = '*';

@@ -15,5 +15,6 @@ private:
 	std::vector<Vector2i> GetPathTo(Vector2i TargetPosition);
 	void FindNextMove(std::shared_ptr<Character> TargetPlayer, std::vector<std::string> GameMap);
 	void Attack(std::shared_ptr<Character> TargetPlayer);
+	bool IsPlayerClose(std::shared_ptr<Character> TargetPlayer);
 };
 

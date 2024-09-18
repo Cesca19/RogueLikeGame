@@ -89,10 +89,9 @@ void Game::LoadMap() {
 }
 
 void Game::Run() {
+    Render();
 	while (true) {
-        Render();
-        switch (_mTurn)
-        {
+        switch (_mTurn) {
         case 0:
             HandleInput();
             _mTurn = 1;
@@ -100,16 +99,16 @@ void Game::Run() {
         case 1:
             std::cout << "AI turn" << std::endl;
             for (int i = 0; i < _mMonsters.size(); i++) {
-                Vector2i oldPos = _mMonsters[i]->GetPosition();
+               // Vector2i oldPos = _mMonsters[i]->GetPosition();
                 _mMonsters[i]->Update(_mCharacters, _mMap);
-                Vector2i newPos = _mMonsters[i]->GetPosition();
+               /* Vector2i newPos = _mMonsters[i]->GetPosition();
                 if (oldPos.x != newPos.x || oldPos.y != newPos.y) {
                     AddToActionLog(std::string(1, _mMonsters[i]->GetSymbol()) +
                         " moved from (" + std::to_string(oldPos.x) + "," +
                         std::to_string(oldPos.y) + ") to (" +
                         std::to_string(newPos.x) + "," +
                         std::to_string(newPos.y) + ")");
-                }
+                }*/
             }
 
             _mTurn = 0;
@@ -381,4 +380,5 @@ void Game::AddToActionLog(const std::string& action) {
     if (_mActionLog.size() > MAX_LOG_ENTRIES) {
         _mActionLog.pop_back();
     }
+    Render();
 }
