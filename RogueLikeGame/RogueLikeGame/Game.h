@@ -24,6 +24,14 @@ private:
 	void Move();
 	bool IsValidMove(Vector2i position);
 	void MoveNavigator(int dx, int dy);
+
+	std::vector<std::shared_ptr<Monster>> GetAttackableMonsters();
+	void EnterAttackMode();
+	void ExitAttackMode();
+	void SelectNextMonster(int direction);
+	void AttackMonster(std::vector<std::shared_ptr<Monster>>::const_reference shared);
+	void PerformAttack();
+
 public:
 	std::vector<std::string> UpdateCharacterPositionInMap(Character* Target, Vector2i PrevPosition);
 
@@ -36,5 +44,11 @@ private:
 	std::vector<std::string> _mMap;
 
 	int _mTurn;
+	char _mAttackSymbol = '*';
+
+	enum class GameState { Normal, ChoosingMonsterToAttack };
+	GameState _mCurrentState = GameState::Normal;
+	std::vector<std::shared_ptr<Monster>> _mAttackableMonsters;
+	size_t _mSelectedMonsterIndex = 0;
 };
 
