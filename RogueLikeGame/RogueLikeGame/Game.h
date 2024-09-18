@@ -46,8 +46,8 @@ private:
 	int _mTurn;
 	char _mAttackSymbol = '*';
 
-	enum class GameState { Normal, ChoosingMonsterToAttack };
-	GameState _mCurrentState = GameState::Normal;
+	enum class GameState { Moving, Attacking };
+	GameState _mCurrentState = GameState::Moving;
 	std::vector<std::shared_ptr<Monster>> _mAttackableMonsters;
 	size_t _mSelectedMonsterIndex = 0;
 };

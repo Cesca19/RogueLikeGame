@@ -2,6 +2,8 @@
 #include <fstream>
 #include <iostream>
 #include <conio.h>
+#include <iomanip>
+#include <sstream>
 
 #include "Faucheur.h"
 #include "Golem.h"
@@ -111,65 +113,89 @@ void Game::Render() {
     system("cls");
 
     std::vector<std::string> renderMap = _mMap;
+    std::vector<std::string> statsOutput;
 
-    // Add navigator to the render map
-    if (_mNavigator && _mCurrentState == GameState::Normal) {
+    // Prepare the map
+    if (_mNavigator && _mCurrentState == GameState::Moving) {
         Vector2i position = _mNavigator->GetPosition();
         if (IsValidMove(position)) {
             renderMap[position.y][position.x] = _mNavigator->GetSymbol();
         }
     }
 
-    // Add player to the render map
     if (_mPlayer) {
         Vector2i position = _mPlayer->GetPosition();
         renderMap[position.y][position.x] = _mPlayer->GetSymbol();
     }
 
-    // Add attack symbols for attackable monsters
     for (size_t i = 0; i < _mAttackableMonsters.size(); ++i) {
         const auto& monster = _mAttackableMonsters[i];
         Vector2i position = monster->GetPosition();
-        if (i == _mSelectedMonsterIndex && _mCurrentState == GameState::ChoosingMonsterToAttack) {
-            renderMap[position.y][position.x] = '!'; // Use a different symbol for the selected monster
+        renderMap[position.y][position.x] = (i == _mSelectedMonsterIndex && _mCurrentState == GameState::Attacking) ? '!' : _mAttackSymbol;
+    }
+
+    // Prepare the stats
+    std::stringstream ss;
+    ss << "\nPlayer Stats:\n";
+    ss << std::setw(15) << std::left << "Name:" << _mPlayer->GetSymbol() << "\n";
+    ss << std::setw(15) << std::left << "HP:" << _mPlayer->GetHp() << "\n";
+    ss << std::setw(15) << std::left << "Damage:" << _mPlayer->GetDamageAmount() << "\n\n";
+
+    if (_mCurrentState == GameState::Attacking && _mSelectedMonsterIndex < _mAttackableMonsters.size()) {
+        const auto& monster = _mAttackableMonsters[_mSelectedMonsterIndex];
+        ss << "Selected Monster Stats:\n";
+        ss << std::setw(15) << std::left << "Name:" << monster->GetSymbol() << "\n";
+        ss << std::setw(15) << std::left << "HP:" << monster->GetHp() << "\n";
+        ss << std::setw(15) << std::left << "Damage:" << monster->GetDamageAmount() << "\n";
+    }
+
+    std::string line;
+    while (std::getline(ss, line)) {
+        statsOutput.push_back(line);
+    }
+
+    // Render side by side
+    size_t maxHeight = std::max(renderMap.size(), statsOutput.size());
+    for (size_t i = 0; i < maxHeight; ++i) {
+        if (i < renderMap.size()) {
+            std::cout << renderMap[i];
         }
         else {
-            renderMap[position.y][position.x] = _mAttackSymbol;
+            std::cout << std::string(renderMap[0].length(), ' ');
         }
+        std::cout << "    ";  // Spacing between map and stats
+        if (i < statsOutput.size()) {
+            std::cout << statsOutput[i];
+        }
+        std::cout << std::endl;
     }
 
-    // Display the updated map
-    for (const auto& line : renderMap) {
-        std::cout << line << std::endl;
-    }
-
-    // Display additional game information
-    if (_mNavigator && _mCurrentState == GameState::Normal) {
-        std::cout << "Navigator position: (" << _mNavigator->GetX() << ", " << _mNavigator->GetY() << ")" << std::endl;
-    }
-
-    // Display controls
-    std::cout << "\nControls:" << std::endl;
-    if (_mCurrentState == GameState::Normal) {
-        std::cout << "Arrow keys: Move navigator" << std::endl;
-        std::cout << "Space: Move player to navigator" << std::endl;
-        std::cout << "Enter attack mode (if there is monsters)" << std::endl;
-        std::cout << "Esc: Quit game" << std::endl;
-    }
-    else if (_mCurrentState == GameState::ChoosingMonsterToAttack) {
-        std::cout << "Arrow keys: Select monster to attack" << std::endl;
-        std::cout << "Enter: Confirm attack" << std::endl;
-        std::cout << "Esc: Exit attack mode" << std::endl;
+    // Additional game information
+    if (_mNavigator && _mCurrentState == GameState::Moving) {
+        std::cout << "\nNavigator position: (" << _mNavigator->GetX() << ", " << _mNavigator->GetY() << ")" << std::endl;
     }
 
     // Display attackable monsters
-    if (_mCurrentState == GameState::ChoosingMonsterToAttack) {
+    if (_mCurrentState == GameState::Attacking) {
         std::cout << "\nAttackable monsters:" << std::endl;
         for (size_t i = 0; i < _mAttackableMonsters.size(); ++i) {
             const auto& monster = _mAttackableMonsters[i];
             std::cout << (i == _mSelectedMonsterIndex ? "-> " : "   ")
                 << monster->GetSymbol() << " at (" << monster->GetPosition().x << ", " << monster->GetPosition().y << ")" << std::endl;
         }
+    }
+
+    std::cout << "\nControls:\n";
+    if (_mCurrentState == GameState::Moving) {
+        std::cout << "Arrow keys: Move navigator\n";
+        std::cout << "Space: Move player to navigator\n";
+        std::cout << "Enter: Enter attack mode\n";
+        std::cout << "Esc: Quit game\n";
+    }
+    else if (_mCurrentState == GameState::Attacking) {
+        std::cout << "Arrow keys: Select monster\n";
+        std::cout << "Space: Confirm attack\n";
+        std::cout << "Esc: Exit attack mode\n";
     }
 }
 
@@ -178,7 +204,7 @@ void Game::HandleInput() {
     bool actionTaken = false;
 
     while (!actionTaken) {
-        if (_mCurrentState == GameState::Normal) {
+        if (_mCurrentState == GameState::Moving) {
             if (key == 224) { // Arrow key pressed
                 key = _getch();
                 int dx = 0, dy = 0;
@@ -204,7 +230,7 @@ void Game::HandleInput() {
             }
         }
 
-        else if (_mCurrentState == GameState::ChoosingMonsterToAttack) {
+        else if (_mCurrentState == GameState::Attacking) {
             if (key == 224) {
                 key = _getch();
                 switch (key) {
@@ -218,17 +244,13 @@ void Game::HandleInput() {
                     break;
                 }
             }
-            else if (key == 13) { // Enter key
+            else if (key == 32) { // Enter key
                 PerformAttack();
                 actionTaken = true;
             }
             else if (key == 27) { // Esc key
                 ExitAttackMode();
             }
-        }
-
-        if (key == 27 && _mCurrentState == GameState::Normal) { // Esc key in normal mode
-            exit(0);
         }
 
         Render();
@@ -288,13 +310,13 @@ std::vector<std::string> Game::UpdateCharacterPositionInMap(Character *Target, V
 }
 
 void Game::EnterAttackMode() {
-    _mCurrentState = GameState::ChoosingMonsterToAttack;
+    _mCurrentState = GameState::Attacking;
     _mAttackableMonsters = GetAttackableMonsters();
     _mSelectedMonsterIndex = 0;
 }
 
 void Game::ExitAttackMode() {
-    _mCurrentState = GameState::Normal;
+    _mCurrentState = GameState::Moving;
     _mAttackableMonsters.clear();
     _mSelectedMonsterIndex = 0;
 }
@@ -306,7 +328,7 @@ void Game::SelectNextMonster(int direction) {
 }
 
 void Game::AttackMonster(std::vector<std::shared_ptr<Monster>>::const_reference monster) {
-    int damage = _mPlayer->GetDamage();
+    int damage = _mPlayer->GetDamageAmount();
     monster->TakeDamage(damage);
 
     if (monster->GetHp() <= 0) {
