@@ -126,13 +126,12 @@ void Game::Run() {
                 Vector2i oldPos = _mMonsters[i]->GetPosition();
                 _mMonsters[i]->Update(_mCharacters, _mMap);
                 Vector2i newPos = _mMonsters[i]->GetPosition();
-                if (oldPos.x != newPos.x || oldPos.y != newPos.y) {
-                    AddToActionLog(_mMonsters[i]->GetColor() + std::string(1, _mMonsters[i]->GetSymbol()) + RESET +
-                        " moved from (" + std::to_string(oldPos.x) + "," +
-                        std::to_string(oldPos.y) + ") to (" +
-                        std::to_string(newPos.x) + "," +
-                        std::to_string(newPos.y) + ")");
-                }
+
+                AddToActionLog(_mMonsters[i]->GetColor() + std::string(1, _mMonsters[i]->GetSymbol()) + RESET +
+                    " moved from (" + std::to_string(oldPos.x) + "," +
+                    std::to_string(oldPos.y) + ") to (" +
+                    std::to_string(newPos.x) + "," +
+                    std::to_string(newPos.y) + ")");
             }
 
             _mTurn = 0;
