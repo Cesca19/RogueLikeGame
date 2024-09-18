@@ -150,6 +150,7 @@ void Game::Render() {
     std::vector<std::string> renderMap = _mMap;
     std::vector<std::string> statsOutput = RenderStats();
 
+    // Update map with navigator, characters, and attackable monsters
     if (_mNavigator && _mCurrentState == GameState::Moving) {
         Vector2i position = _mNavigator->GetPosition();
         if (IsValidMove(position)) {
@@ -168,16 +169,23 @@ void Game::Render() {
         renderMap[position.y][position.x] = (i == _mSelectedMonsterIndex && _mCurrentState == GameState::Attacking) ? '!' : _mAttackSymbol;
     }
 
-    size_t maxHeight = std::max(renderMap.size(), statsOutput.size());
-    for (size_t y = 0; y < maxHeight; ++y) {
-        if (y < renderMap.size()) {
-            for (size_t x = 0; x < renderMap[y].length(); ++x) {
-                char currentChar = renderMap[y][x];
+    // Render the map
+    for (size_t y = 0; y < renderMap.size(); ++y) {
+        for (size_t x = 0; x < renderMap[y].length(); ++x) {
+            char currentChar = renderMap[y][x];
+
+            if (currentChar == '+' || currentChar == '|') {
+                std::cout << currentChar;
+            }
+            else if (currentChar == '-') {
+                std::cout << "---"; // Expand horizontal borders
+            }
+            else {
                 bool charColored = false;
 
                 for (const auto& character : _mCharacters) {
                     if (character->GetX() == x && character->GetY() == y) {
-                        std::cout << character->GetColor() << currentChar << RESET;
+                        std::cout << character->GetColor() << " " << currentChar << " " << RESET;
                         charColored = true;
                         break;
                     }
@@ -185,28 +193,29 @@ void Game::Render() {
 
                 if (!charColored && _mNavigator && _mCurrentState == GameState::Moving &&
                     _mNavigator->GetPosition().x == x && _mNavigator->GetPosition().y == y) {
-                    std::cout << _mNavigator->GetColor() << currentChar << RESET;
+                    std::cout << _mNavigator->GetColor() << " " << currentChar << " " << RESET;
                     charColored = true;
                 }
 
                 if (!charColored) {
-                    std::cout << currentChar;
+                    if (currentChar == '.') {
+                        std::cout << "\033[44m   " << RESET; // Blue background for valid moves
+                    }
+                    else {
+                        std::cout << " " << (currentChar == ' ' ? ' ' : currentChar) << " "; // Add spaces around other characters
+                    }
                 }
             }
         }
-        else {
-            std::cout << std::string(renderMap[0].length(), ' ');
-        }
 
-        std::cout << "    ";
-
+        // Print stats on the right side of the map
         if (y < statsOutput.size()) {
-            std::cout << statsOutput[y];
+            std::cout << "    " << statsOutput[y];
         }
-
         std::cout << std::endl;
     }
 
+    // Print additional information
     if (_mNavigator && _mCurrentState == GameState::Moving) {
         std::cout << "\nNavigator position: (" << _mNavigator->GetX() << ", " << _mNavigator->GetY() << ")" << std::endl;
     }
@@ -222,15 +231,10 @@ void Game::Render() {
 
     std::cout << "\nControls:\n";
     if (_mCurrentState == GameState::Moving) {
-        std::cout << "Arrow keys: Move navigator\n";
-        std::cout << "Space: Move player to navigator\n";
-        std::cout << "Enter: Enter attack mode\n";
-        std::cout << "Esc: Quit game\n";
+        std::cout << "Arrow keys: Move navigator | Space: Move player | Enter: Attack mode | Esc: Quit\n";
     }
     else if (_mCurrentState == GameState::Attacking) {
-        std::cout << "Arrow keys: Select monster\n";
-        std::cout << "Space: Confirm attack\n";
-        std::cout << "Esc: Exit attack mode\n";
+        std::cout << "Arrow keys: Select monster | Space: Confirm attack | Esc: Exit attack mode\n";
     }
 }
 
