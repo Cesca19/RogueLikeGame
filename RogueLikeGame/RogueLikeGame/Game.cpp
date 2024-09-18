@@ -100,9 +100,16 @@ void Game::Run() {
         case 1:
             std::cout << "AI turn" << std::endl;
             for (int i = 0; i < _mMonsters.size(); i++) {
+                Vector2i oldPos = _mMonsters[i]->GetPosition();
                 _mMonsters[i]->Update(_mCharacters, _mMap);
-                Render();
-
+                Vector2i newPos = _mMonsters[i]->GetPosition();
+                if (oldPos.x != newPos.x || oldPos.y != newPos.y) {
+                    AddToActionLog(std::string(1, _mMonsters[i]->GetSymbol()) +
+                        " moved from (" + std::to_string(oldPos.x) + "," +
+                        std::to_string(oldPos.y) + ") to (" +
+                        std::to_string(newPos.x) + "," +
+                        std::to_string(newPos.y) + ")");
+                }
             }
 
             _mTurn = 0;
@@ -323,6 +330,7 @@ std::vector<std::string> Game::UpdateCharacterPositionInMap(Character *Target, V
     Vector2i position = Target->GetPosition();
     _mMap[position.y][position.x] = Target->GetSymbol();
     _mMap[PrevPosition.y][PrevPosition.x] = ' ';
+    Render();
     return _mMap;
 }
 
