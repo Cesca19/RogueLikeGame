@@ -4,3 +4,7 @@
 /RogueLikeGame/.idea
 /.vs
 /RogueLikeGame/RogueLikeGame/x64
+/RogueLikeGame/RogueLikeGame/x64/Debug
+*.obj
+*.idb
+*.log

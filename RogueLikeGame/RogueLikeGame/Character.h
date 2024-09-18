@@ -21,6 +21,9 @@ public:
 	virtual void OnDeath() = 0;
 
 	void SetGame(void* CurrentGame);
+	int GetDamageAmount() const { return _mDamageAmount; }
+	int GetHp() const { return _mHp; }
+
 protected:
 	int _mHp;
 	int _mDamageAmount;

@@ -23,10 +23,10 @@ void Spectre::Update(std::vector<std::shared_ptr<Character>> GameCharacters, std
 		if (canFlee) {
 			MoveTo(targetPosition);
 			std::cout << "Spectre moved to: (" << targetPosition.x << "," << targetPosition.y << ")" << std::endl;
-			_getch();
+			//_getch();
 		}
 	}
-
+	std::cout << "Spectre enddddd" << std::endl;
 }
 
 void Spectre::MoveTo(Vector2i TargetPosition)
@@ -78,3 +78,4 @@ Vector2i Spectre::FleeFrom(std::shared_ptr<Character> Target, bool &CanFlee, std
 void Spectre::OnDeath()
 {
 }
+ 
