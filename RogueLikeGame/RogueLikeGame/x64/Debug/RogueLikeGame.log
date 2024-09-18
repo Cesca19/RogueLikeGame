@@ -1,2 +1,4 @@
-﻿  Spectre.cpp
+﻿  Faucheur.cpp
+C:\Users\fifam\Projets\G-TECH4\RogueLikeGame\RogueLikeGame\RogueLikeGame\Faucheur.cpp(15,11): warning C4101: 'targetPosition': unreferenced local variable
+C:\Users\fifam\Projets\G-TECH4\RogueLikeGame\RogueLikeGame\RogueLikeGame\Faucheur.cpp(121,23): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
   RogueLikeGame.vcxproj -> C:\Users\fifam\Projets\G-TECH4\RogueLikeGame\RogueLikeGame\x64\Debug\RogueLikeGame.exe
