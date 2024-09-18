@@ -8,7 +8,7 @@
 #include "Navigator.h"
 #include "Spectre.h"
 
-Game::Game() {}
+Game::Game() : _mTurn(0) {}
 
 Game::~Game() {}
 

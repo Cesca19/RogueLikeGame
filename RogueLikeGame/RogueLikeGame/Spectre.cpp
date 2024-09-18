@@ -21,8 +21,9 @@ void Spectre::Update(std::vector<std::shared_ptr<Character>> GameCharacters, std
 	if (player != nullptr) {
 		targetPosition = FleeFrom(player, canFlee, GameMap);
 		if (canFlee) {
-			std::cout << "fleeeeeeeeeeeeeeeeeeeeee" << std::endl;
-			//MoveTo(targetPosition);
+			MoveTo(targetPosition);
+			std::cout << "Spectre moved to: (" << targetPosition.x << "," << targetPosition.y << ")" << std::endl;
+			_getch();
 		}
 	}
 
@@ -30,24 +31,27 @@ void Spectre::Update(std::vector<std::shared_ptr<Character>> GameCharacters, std
 
 void Spectre::MoveTo(Vector2i TargetPosition)
 {
-	int i = 1, j = 1;
-	if (_mPosition.x > TargetPosition.x)
-		i = -1;
-	if (_mPosition.y > TargetPosition.y)
-		j = -1;
 	Game* game = static_cast<Game*>(_mGame);
-	if (game == nullptr) {
-		std::cout << "errrrrrrrrrrrrrrrrrrrrrrorr" << std::endl;
+	if (game == nullptr)
 		exit(84);
+
+	//replace with bfs or a*
+	for (; _mPosition.x < TargetPosition.x; ) {
+		_mPosition.x ++;
+		game->UpdateCharacterPositionInMap(this, Vector2i{ _mPosition.x - 1, _mPosition.y });
+	}
+	for (; _mPosition.x > TargetPosition.x; ) {
+		_mPosition.x--;
+		game->UpdateCharacterPositionInMap(this, Vector2i{ _mPosition.x + 1, _mPosition.y });
 	}
 
-	for (; _mPosition.x != TargetPosition.x; ) {
-		_mPosition.x += i;
-		game->UpdateCharacterPositionInMap(this, Vector2i{ _mPosition.x - i, _mPosition.y });
+	for (; _mPosition.y < TargetPosition.y; ) {
+		_mPosition.y++;
+		game->UpdateCharacterPositionInMap(this, Vector2i{ _mPosition.x, _mPosition.y - 1});
 	}
-	for (; _mPosition.y != TargetPosition.y; _mPosition.y += j) {
-		_mPosition.y += j;
-		game->UpdateCharacterPositionInMap(this, Vector2i{ _mPosition.x, _mPosition.y - j });
+	for (; _mPosition.y > TargetPosition.y; ) {
+		_mPosition.y--;
+		game->UpdateCharacterPositionInMap(this, Vector2i{ _mPosition.x, _mPosition.y + 1});
 	}
 }
 
@@ -58,10 +62,16 @@ void Spectre::Reward(std::vector<std::shared_ptr<Character>> GameCharacters)
 Vector2i Spectre::FleeFrom(std::shared_ptr<Character> Target, bool &CanFlee, std::vector<std::string> GameMap)
 { 
 	Vector2i targetPos = Target->GetPosition();
-	Vector2i fleeVector = { - (_mPosition.x - targetPos.x),  _mPosition.y - targetPos.y };
+	Vector2i fleeVector = { (_mPosition.x - targetPos.x), (_mPosition.y - targetPos.y) }; // add a variable offset
 	Vector2i  destination = { _mPosition.x + fleeVector.x,  _mPosition.y - fleeVector.y };
+	std::cout << "p: " << targetPos.x << ":" << targetPos.y << std::endl;
+	std::cout << "g: " <<  _mPosition.x << ":" << _mPosition.y << std::endl;
+	std::cout << "offset: " << fleeVector.x << ":" << fleeVector.y << std::endl;
+	std::cout << destination.x << ":" << destination.y << std::endl;
 	
-	CanFlee = (GameMap[destination.y][destination.x] == ' ') ? true : false;
+	
+	if (destination.y > 0 && destination.y < (GameMap.size() - 1 ) && destination.x > 0 && destination.x < (GameMap[0].size() - 1))
+		CanFlee = (GameMap[destination.y][destination.x] == ' ') ? true : false;
 	return destination;
 }
 
