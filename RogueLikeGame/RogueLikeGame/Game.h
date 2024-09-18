@@ -17,6 +17,9 @@ public:
 	void Init();
 	void Run();
 	void AddToActionLog(const std::string& action);
+	std::vector<std::shared_ptr<Character>> GetAllMonsters();
+	std::shared_ptr<Player> GetPlayer();
+
 private:
 	void LoadMap();
 	void Render();
@@ -41,6 +44,7 @@ private:
 	std::shared_ptr<Player> _mPlayer = nullptr;
 	std::shared_ptr<Navigator> _mNavigator = nullptr;
 	std::vector<std::shared_ptr<Monster>> _mMonsters;
+	std::vector<std::shared_ptr<Character>> _mGameMonsters;
 	std::vector<std::shared_ptr<Character>> _mCharacters;
 	std::queue<std::string> _mCombatLog;
 	std::vector<std::string> _mMap;

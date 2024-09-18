@@ -9,12 +9,12 @@ Character::~Character()
 {
 }
 
-void Character::ApplyDamage(std::shared_ptr<Character> Target, int DamageAmount)
+/*void Character::ApplyDamage(std::shared_ptr<Character> Target, int DamageAmount)
 {
 	Target->TakeDamage(DamageAmount);
-}
+}*/
 
-void Character::TakeDamage(int DamageAmount)
+void Character::TakeDamage(int DamageAmount, Character* Source)
 {
 	_mHp -= DamageAmount;
 	if (_mHp <= 0)

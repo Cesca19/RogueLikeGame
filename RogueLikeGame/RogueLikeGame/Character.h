@@ -16,8 +16,8 @@ public:
 	~Character();
 	virtual void Update(std::vector<std::shared_ptr<Character>> GameCharacters, std::vector<std::string> GameMap) = 0;
 	virtual void MoveTo(Vector2i TargetPosition) = 0;
-	virtual void ApplyDamage(std::shared_ptr<Character> Target, int DamageAmount);
-	virtual void TakeDamage(int DamageAmount);
+//	virtual void ApplyDamage(std::shared_ptr<Character> Target, int DamageAmount);
+	virtual void TakeDamage(int DamageAmount, Character* Source);
 	virtual void OnDeath() = 0;
 
 	void SetGame(void* CurrentGame);

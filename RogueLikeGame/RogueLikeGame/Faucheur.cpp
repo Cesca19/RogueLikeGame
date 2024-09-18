@@ -24,7 +24,7 @@ void Faucheur::Update(std::vector<std::shared_ptr<Character>> GameCharacters, st
 		if (!IsPlayerClose(player))
 			FindNextMove(player, GameMap);
 		if (startPos.x != _mPosition.x || startPos.y != _mPosition.y)
-			game->AddToActionLog("F moved from (" + std::to_string(startPos.x) + "," + std::to_string(startPos.y) + ") to (" 
+			game->AddToActionLog("Faucheur (F) moved from (" + std::to_string(startPos.x) + "," + std::to_string(startPos.y) + ") to (" 
 				+ std::to_string(_mPosition.x) + "," + std::to_string(_mPosition.y) + ")");
 		Attack(player);
 	}
@@ -62,10 +62,23 @@ void Faucheur::MoveTo(Vector2i TargetPosition)
 
 void Faucheur::Reward(std::vector<std::shared_ptr<Character>> GameCharacters)
 {
+	Game* game = static_cast<Game*>(_mGame);
+	for (int i = 0; i < GameCharacters.size(); i++) {
+		if (GameCharacters[i].get() != this) {
+			GameCharacters[i]->TakeDamage(_mDamageAmount, this);
+			game->AddToActionLog("Faucheur (F) used his special ability to Attack " + std::string{ GameCharacters[i]->GetSymbol() } + 
+				"(" + std::to_string(GameCharacters[i]->GetX()) + "," + std::to_string(GameCharacters[i]->GetY()) + ") who has now " + 
+				std::to_string(GameCharacters[i]->GetHp()) + " HP");
+		}
+	}
 }
 
 void Faucheur::OnDeath()
 {
+	Game* game = static_cast<Game*>(_mGame);
+	if (game == nullptr)
+		exit(84);
+	Reward(game->GetAllMonsters());
 }
 
 std::vector<Vector2i> Faucheur::GetReachablePosition(Vector2i TargetPosition, std::vector<std::string> GameMap)
@@ -114,7 +127,6 @@ void Faucheur::FindNextMove(std::shared_ptr<Character> TargetPlayer, std::vector
 	std::vector<std::vector<Vector2i>> pathWays;
 	Game* game = static_cast<Game*>(_mGame);
 	
-
 	if (reachablePositions.size() <= 0)
 		return;
 	if (game == nullptr)
@@ -145,12 +157,14 @@ void Faucheur::Attack(std::shared_ptr<Character> TargetPlayer)
 	std::vector<Vector2i> availablePositions = { {TargetPosition.x - 1, TargetPosition.y }, {TargetPosition.x + 1, TargetPosition.y},
 												{ TargetPosition.x, TargetPosition.y - 1}, {TargetPosition.x, TargetPosition.y + 1} };
 	Game* game = static_cast<Game*>(_mGame);
+	if (game == nullptr)
+		exit(84);
 
 
 	for (int i = 0; i < availablePositions.size(); i++) {
 		if (_mPosition.y == availablePositions[i].y && _mPosition.x == availablePositions[i].x) {
-			TargetPlayer->TakeDamage(_mDamageAmount);
-			game->AddToActionLog("F attacked the Hero");
+			TargetPlayer->TakeDamage(_mDamageAmount, this);
+			game->AddToActionLog("Faucheur (F) attacked you and you loose " + std::to_string(_mDamageAmount) + " HP");
 		}
 	}
 }
