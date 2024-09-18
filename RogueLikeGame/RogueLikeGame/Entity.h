@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 struct Vector2i {
 	int x, y;
@@ -15,9 +16,12 @@ public:
 		_mPosition = newPosition;
 	}
 
+	void SetColor(const std::string& color) { _mColor = color; }
+	const std::string& GetColor() const { return _mColor; }
+
 protected:
 	Vector2i _mPosition;
 	char _mSymbol;
-
+	std::string _mColor;
 };
 

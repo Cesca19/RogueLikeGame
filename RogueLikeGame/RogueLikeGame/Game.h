@@ -33,6 +33,7 @@ private:
 	void AttackMonster(std::vector<std::shared_ptr<Monster>>::const_reference monster);
 	void PerformAttack();
 	void AddToActionLog(const std::string& action);
+	std::string GetNextColor();
 
 public:
 	std::vector<std::string> UpdateCharacterPositionInMap(Character* Target, Vector2i PrevPosition);
@@ -46,6 +47,8 @@ private:
 	std::vector<std::string> _mMap;
 	std::deque<std::string> _mActionLog;
 	const size_t MAX_LOG_ENTRIES = 4;
+	std::vector<std::string> _mColors;
+	size_t _mCurrentColorIndex = 0;
 
 	int _mTurn;
 	char _mAttackSymbol = '*';

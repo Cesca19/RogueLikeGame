@@ -11,7 +11,28 @@
 #include "Navigator.h"
 #include "Spectre.h"
 
-Game::Game() : _mTurn(0) {}
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
+#define MAGENTA "\033[35m"
+#define CYAN    "\033[36m"
+#define WHITE   "\033[37m"
+#define BRIGHT_RED     "\033[91m"
+#define BRIGHT_GREEN   "\033[92m"
+#define BRIGHT_YELLOW  "\033[93m"
+#define BRIGHT_BLUE    "\033[94m"
+#define BRIGHT_MAGENTA "\033[95m"
+#define BRIGHT_CYAN    "\033[96m"
+
+Game::Game() : _mTurn(0) {
+    _mColors = {
+        RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN,
+        BRIGHT_RED, BRIGHT_GREEN, BRIGHT_YELLOW, BRIGHT_BLUE, BRIGHT_MAGENTA, BRIGHT_CYAN
+    };
+    _mCurrentColorIndex = 0;
+}
 
 Game::~Game() {}
 
@@ -32,6 +53,7 @@ void Game::Init() {
                 auto golem = std::make_shared<Golem>(100, 20, 'G', 10);
                 golem->SetPosition(Vector2i{ x, y });
                 golem->SetGame(this);
+                golem->SetColor(GetNextColor());
                 _mMonsters.push_back(golem);
                 _mCharacters.push_back(_mMonsters.back());
                 break;
@@ -41,6 +63,7 @@ void Game::Init() {
                 auto spectre = std::make_shared<Spectre>(100, 10, 'S');
                 spectre->SetPosition(Vector2i{ x, y });
                 spectre->SetGame(this);
+                spectre->SetColor(GetNextColor());
                 _mMonsters.push_back(spectre);
                 _mCharacters.push_back(_mMonsters.back());
                 break;
@@ -50,6 +73,7 @@ void Game::Init() {
                 auto faucheur = std::make_shared<Faucheur>(100, 30, 'F');
                 faucheur->SetPosition(Vector2i{ x, y });
                 faucheur->SetGame(this);
+                faucheur->SetColor(GetNextColor());
                 _mMonsters.push_back(faucheur);
                 _mCharacters.push_back(_mMonsters.back());
                 break;
@@ -381,4 +405,10 @@ void Game::AddToActionLog(const std::string& action) {
     if (_mActionLog.size() > MAX_LOG_ENTRIES) {
         _mActionLog.pop_back();
     }
+}
+
+std::string Game::GetNextColor() {
+    std::string color = _mColors[_mCurrentColorIndex];
+    _mCurrentColorIndex = (_mCurrentColorIndex + 1) % _mColors.size();
+    return color;
 }
