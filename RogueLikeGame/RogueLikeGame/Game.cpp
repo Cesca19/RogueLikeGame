@@ -4,6 +4,7 @@
 #include <conio.h>
 #include <iomanip>
 #include <sstream>
+#include <deque>
 
 #include "Faucheur.h"
 #include "Golem.h"
@@ -98,8 +99,19 @@ void Game::Run() {
             break;
         case 1:
             std::cout << "AI turn" << std::endl;
-            for (int i = 0; i < _mMonsters.size(); i++)
+            for (int i = 0; i < _mMonsters.size(); i++) {
+                Vector2i oldPos = _mMonsters[i]->GetPosition();
                 _mMonsters[i]->Update(_mCharacters, _mMap);
+                Vector2i newPos = _mMonsters[i]->GetPosition();
+                if (oldPos.x != newPos.x || oldPos.y != newPos.y) {
+                    AddToActionLog(std::string(1, _mMonsters[i]->GetSymbol()) +
+                        " moved from (" + std::to_string(oldPos.x) + "," +
+                        std::to_string(oldPos.y) + ") to (" +
+                        std::to_string(newPos.x) + "," +
+                        std::to_string(newPos.y) + ")");
+                }
+            }
+
             _mTurn = 0;
             break;
         default:
@@ -114,6 +126,7 @@ void Game::Render() {
 
     std::vector<std::string> renderMap = _mMap;
     std::vector<std::string> statsOutput;
+    std::vector<std::string> logOutput;
 
     // Prepare the map
     if (_mNavigator && _mCurrentState == GameState::Moving) {
@@ -136,7 +149,7 @@ void Game::Render() {
 
     // Prepare the stats
     std::stringstream ss;
-    ss << "\nPlayer Stats:\n";
+    ss << "Player Stats:\n";
     ss << std::setw(15) << std::left << "Name:" << _mPlayer->GetSymbol() << "\n";
     ss << std::setw(15) << std::left << "HP:" << _mPlayer->GetHp() << "\n";
     ss << std::setw(15) << std::left << "Damage:" << _mPlayer->GetDamageAmount() << "\n\n";
@@ -154,23 +167,38 @@ void Game::Render() {
         statsOutput.push_back(line);
     }
 
+    // Prepare the log
+    logOutput.push_back("Recent Actions:");
+    for (const auto& action : _mActionLog) {
+        logOutput.push_back(action);
+    }
+
     // Render side by side
-    size_t maxHeight = std::max(renderMap.size(), statsOutput.size());
+    size_t maxHeight = std::max({ renderMap.size(), statsOutput.size() + logOutput.size() + 1 });  // +1 for a blank line between stats and log
     for (size_t i = 0; i < maxHeight; ++i) {
+        // Render map
         if (i < renderMap.size()) {
             std::cout << renderMap[i];
         }
         else {
             std::cout << std::string(renderMap[0].length(), ' ');
         }
-        std::cout << "    ";  // Spacing between map and stats
+        std::cout << "    ";  // Spacing between map and stats/log
+
+        // Render stats and log
         if (i < statsOutput.size()) {
             std::cout << statsOutput[i];
+        }
+        else if (i == statsOutput.size()) {
+            std::cout << "";  // Blank line between stats and log
+        }
+        else if (i - statsOutput.size() - 1 < logOutput.size()) {
+            std::cout << logOutput[i - statsOutput.size() - 1];
         }
         std::cout << std::endl;
     }
 
-    // Additional game information
+    // Display additional game information
     if (_mNavigator && _mCurrentState == GameState::Moving) {
         std::cout << "\nNavigator position: (" << _mNavigator->GetX() << ", " << _mNavigator->GetY() << ")" << std::endl;
     }
@@ -198,6 +226,7 @@ void Game::Render() {
         std::cout << "Esc: Exit attack mode\n";
     }
 }
+
 
 void Game::HandleInput() {
     int key = _getch();
@@ -262,7 +291,12 @@ void Game::HandleInput() {
 
 void Game::Move() {
     if (_mNavigator && IsValidMove(_mNavigator->GetPosition())) {
+        Vector2i oldPos = _mPlayer->GetPosition();
         _mPlayer->SetPosition(_mNavigator->GetPosition());
+        AddToActionLog("Player moved from (" + std::to_string(oldPos.x) + "," +
+            std::to_string(oldPos.y) + ") to (" +
+            std::to_string(_mPlayer->GetPosition().x) + "," +
+            std::to_string(_mPlayer->GetPosition().y) + ")");
     }
 }
 
@@ -323,7 +357,6 @@ void Game::ExitAttackMode() {
 
 void Game::SelectNextMonster(int direction) {
     if (_mAttackableMonsters.empty()) return;
-
     _mSelectedMonsterIndex = (_mSelectedMonsterIndex + direction + _mAttackableMonsters.size()) % _mAttackableMonsters.size();
 }
 
@@ -331,12 +364,17 @@ void Game::AttackMonster(std::vector<std::shared_ptr<Monster>>::const_reference 
     int damage = _mPlayer->GetDamageAmount();
     monster->TakeDamage(damage);
 
+    AddToActionLog("Player attacked " + std::string(1, monster->GetSymbol()) +
+        " for " + std::to_string(damage) + " damage");
+
     if (monster->GetHp() <= 0) {
         _mMonsters.erase(std::remove(_mMonsters.begin(), _mMonsters.end(), monster), _mMonsters.end());
         _mCharacters.erase(std::remove(_mCharacters.begin(), _mCharacters.end(), monster), _mCharacters.end());
 
         Vector2i position = monster->GetPosition();
         _mMap[position.y][position.x] = ' ';
+
+        AddToActionLog(std::string(1, monster->GetSymbol()) + " was defeated");
     }
 }
 
@@ -345,4 +383,11 @@ void Game::PerformAttack() {
         AttackMonster(_mAttackableMonsters[_mSelectedMonsterIndex]);
     }
     ExitAttackMode();
+}
+
+void Game::AddToActionLog(const std::string& action) {
+    _mActionLog.push_front(action);
+    if (_mActionLog.size() > MAX_LOG_ENTRIES) {
+        _mActionLog.pop_back();
+    }
 }

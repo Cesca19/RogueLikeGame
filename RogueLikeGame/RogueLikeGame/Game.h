@@ -29,8 +29,9 @@ private:
 	void EnterAttackMode();
 	void ExitAttackMode();
 	void SelectNextMonster(int direction);
-	void AttackMonster(std::vector<std::shared_ptr<Monster>>::const_reference shared);
+	void AttackMonster(std::vector<std::shared_ptr<Monster>>::const_reference monster);
 	void PerformAttack();
+	void AddToActionLog(const std::string& action);
 
 public:
 	std::vector<std::string> UpdateCharacterPositionInMap(Character* Target, Vector2i PrevPosition);
@@ -42,6 +43,8 @@ private:
 	std::vector<std::shared_ptr<Character>> _mCharacters;
 	std::queue<std::string> _mCombatLog;
 	std::vector<std::string> _mMap;
+	std::deque<std::string> _mActionLog;
+	const size_t MAX_LOG_ENTRIES = 4;
 
 	int _mTurn;
 	char _mAttackSymbol = '*';
