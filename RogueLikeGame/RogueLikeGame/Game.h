@@ -50,7 +50,7 @@ private:
 	std::queue<std::string> _mCombatLog;
 	std::vector<std::string> _mMap;
 	std::deque<std::string> _mActionLog;
-	const size_t MAX_LOG_ENTRIES = 4;
+	const size_t MAX_LOG_ENTRIES = 6;
 	std::vector<std::string> _mColors;
 	size_t _mCurrentColorIndex = 0;
 

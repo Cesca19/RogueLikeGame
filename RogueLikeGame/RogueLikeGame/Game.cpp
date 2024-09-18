@@ -47,6 +47,7 @@ void Game::Init() {
                 _mPlayer->SetGame(this);
                 _mPlayer->SetMoveLength(4);
                 _mCharacters.push_back(_mPlayer);
+                _mMap[y][x] = ' ';
                 CalculateValidMoves(_mPlayer->GetMoveLength());
                 break;
             }
@@ -284,7 +285,6 @@ void Game::HandleInput() {
             else if (key == 13) { // Enter key
                 if (!GetAttackableMonsters().empty()) {
                     EnterAttackMode();
-                    actionTaken = true;
                 }
             }
             else if (key == 32) { // Space key
@@ -407,7 +407,7 @@ void Game::AttackMonster(std::vector<std::shared_ptr<Monster>>::const_reference 
     int damage = _mPlayer->GetDamageAmount();
     monster->TakeDamage(damage);
 
-    AddToActionLog("Player attacked " + std::string(1, monster->GetSymbol()) +
+    AddToActionLog("Player attacked " + monster->GetColor() + std::string(1, monster->GetSymbol()) + RESET +
         " for " + std::to_string(damage) + " damage");
 
     if (monster->GetHp() <= 0) {
