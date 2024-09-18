@@ -128,7 +128,7 @@ void Game::Run() {
                 _mMonsters[i]->Update(_mCharacters, _mMap);
                 Vector2i newPos = _mMonsters[i]->GetPosition();
                 if (oldPos.x != newPos.x || oldPos.y != newPos.y) {
-                    AddToActionLog(std::string(1, _mMonsters[i]->GetSymbol()) +
+                    AddToActionLog(_mMonsters[i]->GetColor() + std::string(1, _mMonsters[i]->GetSymbol()) + RESET +
                         " moved from (" + std::to_string(oldPos.x) + "," +
                         std::to_string(oldPos.y) + ") to (" +
                         std::to_string(newPos.x) + "," +
@@ -149,7 +149,9 @@ void Game::Render() {
     system("cls");
 
     std::vector<std::string> renderMap = _mMap;
+    std::vector<std::string> statsOutput = RenderStats();
 
+    // Update renderMap with character positions and colors
     if (_mNavigator && _mCurrentState == GameState::Moving) {
         Vector2i position = _mNavigator->GetPosition();
         if (IsValidMove(position)) {
@@ -168,20 +170,48 @@ void Game::Render() {
         renderMap[position.y][position.x] = (i == _mSelectedMonsterIndex && _mCurrentState == GameState::Attacking) ? '!' : _mAttackSymbol;
     }
 
-	std::vector<std::string> statsOutput = RenderStats();
+    // Render the game board with stats on the right
     size_t maxHeight = std::max(renderMap.size(), statsOutput.size());
     for (size_t i = 0; i < maxHeight; ++i) {
+        // Render map
         if (i < renderMap.size()) {
-            std::cout << renderMap[i];
+            for (size_t x = 0; x < renderMap[i].length(); ++x) {
+                char currentChar = renderMap[i][x];
+                bool charColored = false;
+
+                // Check if the current position matches any character's position
+                for (const auto& character : _mCharacters) {
+                    if (character->GetPosition().x == x && character->GetPosition().y == i) {
+                        std::cout << character->GetColor() << currentChar << RESET;
+                        charColored = true;
+                        break;
+                    }
+                }
+
+                // If it's the navigator's position and we're in moving state
+                if (!charColored && _mNavigator && _mCurrentState == GameState::Moving &&
+                    _mNavigator->GetPosition().x == x && _mNavigator->GetPosition().y == i) {
+                    std::cout << _mNavigator->GetColor() << currentChar << RESET;
+                    charColored = true;
+                }
+
+                // If the character wasn't colored, print it as is
+                if (!charColored) {
+                    std::cout << currentChar;
+                }
+            }
         }
         else {
             std::cout << std::string(renderMap[0].length(), ' ');
         }
-        std::cout << "    ";
 
+        std::cout << "    "; // Spacing between map and stats
+
+        // Render stats
         if (i < statsOutput.size()) {
             std::cout << statsOutput[i];
         }
+
         std::cout << std::endl;
     }
 
