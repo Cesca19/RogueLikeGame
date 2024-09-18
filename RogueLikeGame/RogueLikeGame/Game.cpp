@@ -100,16 +100,9 @@ void Game::Run() {
         case 1:
             std::cout << "AI turn" << std::endl;
             for (int i = 0; i < _mMonsters.size(); i++) {
-                Vector2i oldPos = _mMonsters[i]->GetPosition();
                 _mMonsters[i]->Update(_mCharacters, _mMap);
-                Vector2i newPos = _mMonsters[i]->GetPosition();
-                if (oldPos.x != newPos.x || oldPos.y != newPos.y) {
-                    AddToActionLog(std::string(1, _mMonsters[i]->GetSymbol()) +
-                        " moved from (" + std::to_string(oldPos.x) + "," +
-                        std::to_string(oldPos.y) + ") to (" +
-                        std::to_string(newPos.x) + "," +
-                        std::to_string(newPos.y) + ")");
-                }
+                Render();
+
             }
 
             _mTurn = 0;
@@ -125,10 +118,7 @@ void Game::Render() {
     system("cls");
 
     std::vector<std::string> renderMap = _mMap;
-    std::vector<std::string> statsOutput;
-    std::vector<std::string> logOutput;
 
-    // Prepare the map
     if (_mNavigator && _mCurrentState == GameState::Moving) {
         Vector2i position = _mNavigator->GetPosition();
         if (IsValidMove(position)) {
@@ -136,9 +126,9 @@ void Game::Render() {
         }
     }
 
-    if (_mPlayer) {
-        Vector2i position = _mPlayer->GetPosition();
-        renderMap[position.y][position.x] = _mPlayer->GetSymbol();
+    for (const auto& character : _mCharacters) {
+        Vector2i position = character->GetPosition();
+        renderMap[position.y][position.x] = character->GetSymbol();
     }
 
     for (size_t i = 0; i < _mAttackableMonsters.size(); ++i) {
@@ -147,63 +137,27 @@ void Game::Render() {
         renderMap[position.y][position.x] = (i == _mSelectedMonsterIndex && _mCurrentState == GameState::Attacking) ? '!' : _mAttackSymbol;
     }
 
-    // Prepare the stats
-    std::stringstream ss;
-    ss << "Player Stats:\n";
-    ss << std::setw(15) << std::left << "Name:" << _mPlayer->GetSymbol() << "\n";
-    ss << std::setw(15) << std::left << "HP:" << _mPlayer->GetHp() << "\n";
-    ss << std::setw(15) << std::left << "Damage:" << _mPlayer->GetDamageAmount() << "\n\n";
-
-    if (_mCurrentState == GameState::Attacking && _mSelectedMonsterIndex < _mAttackableMonsters.size()) {
-        const auto& monster = _mAttackableMonsters[_mSelectedMonsterIndex];
-        ss << "Selected Monster Stats:\n";
-        ss << std::setw(15) << std::left << "Name:" << monster->GetSymbol() << "\n";
-        ss << std::setw(15) << std::left << "HP:" << monster->GetHp() << "\n";
-        ss << std::setw(15) << std::left << "Damage:" << monster->GetDamageAmount() << "\n";
-    }
-
-    std::string line;
-    while (std::getline(ss, line)) {
-        statsOutput.push_back(line);
-    }
-
-    // Prepare the log
-    logOutput.push_back("Recent Actions:");
-    for (const auto& action : _mActionLog) {
-        logOutput.push_back(action);
-    }
-
-    // Render side by side
-    size_t maxHeight = std::max({ renderMap.size(), statsOutput.size() + logOutput.size() + 1 });  // +1 for a blank line between stats and log
+	std::vector<std::string> statsOutput = RenderStats();
+    size_t maxHeight = std::max(renderMap.size(), statsOutput.size());
     for (size_t i = 0; i < maxHeight; ++i) {
-        // Render map
         if (i < renderMap.size()) {
             std::cout << renderMap[i];
         }
         else {
             std::cout << std::string(renderMap[0].length(), ' ');
         }
-        std::cout << "    ";  // Spacing between map and stats/log
+        std::cout << "    ";
 
-        // Render stats and log
         if (i < statsOutput.size()) {
             std::cout << statsOutput[i];
-        }
-        else if (i == statsOutput.size()) {
-            std::cout << "";  // Blank line between stats and log
-        }
-        else if (i - statsOutput.size() - 1 < logOutput.size()) {
-            std::cout << logOutput[i - statsOutput.size() - 1];
         }
         std::cout << std::endl;
     }
 
-    // Display additional game information
     if (_mNavigator && _mCurrentState == GameState::Moving) {
         std::cout << "\nNavigator position: (" << _mNavigator->GetX() << ", " << _mNavigator->GetY() << ")" << std::endl;
     }
 
-    // Display attackable monsters
     if (_mCurrentState == GameState::Attacking) {
         std::cout << "\nAttackable monsters:" << std::endl;
         for (size_t i = 0; i < _mAttackableMonsters.size(); ++i) {
@@ -225,6 +179,36 @@ void Game::Render() {
         std::cout << "Space: Confirm attack\n";
         std::cout << "Esc: Exit attack mode\n";
     }
+}
+
+std::vector<std::string> Game::RenderStats() {
+    std::vector<std::string> statsOutput;
+    std::stringstream ss;
+
+    ss << "Player Stats:\n";
+    ss << std::setw(15) << std::left << "Name:" << _mPlayer->GetSymbol() << "\n";
+    ss << std::setw(15) << std::left << "HP:" << _mPlayer->GetHp() << "\n";
+    ss << std::setw(15) << std::left << "Damage:" << _mPlayer->GetDamageAmount() << "\n\n";
+
+    if (_mCurrentState == GameState::Attacking && _mSelectedMonsterIndex < _mAttackableMonsters.size()) {
+        const auto& monster = _mAttackableMonsters[_mSelectedMonsterIndex];
+        ss << "Selected Monster Stats:\n";
+        ss << std::setw(15) << std::left << "Name:" << monster->GetSymbol() << "\n";
+        ss << std::setw(15) << std::left << "HP:" << monster->GetHp() << "\n";
+        ss << std::setw(15) << std::left << "Damage:" << monster->GetDamageAmount() << "\n\n";
+    }
+
+    ss << "Recent Actions:\n";
+    for (const auto& action : _mActionLog) {
+        ss << action << "\n";
+    }
+
+    std::string line;
+    while (std::getline(ss, line)) {
+        statsOutput.push_back(line);
+    }
+
+    return statsOutput;
 }
 
 
@@ -339,7 +323,6 @@ std::vector<std::string> Game::UpdateCharacterPositionInMap(Character *Target, V
     Vector2i position = Target->GetPosition();
     _mMap[position.y][position.x] = Target->GetSymbol();
     _mMap[PrevPosition.y][PrevPosition.x] = ' ';
-    Render();
     return _mMap;
 }
 

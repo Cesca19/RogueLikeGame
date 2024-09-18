@@ -20,6 +20,7 @@ public:
 private:
 	void LoadMap();
 	void Render();
+	std::vector<std::string> RenderStats();
 	void HandleInput();
 	void Move();
 	bool IsValidMove(Vector2i position);
