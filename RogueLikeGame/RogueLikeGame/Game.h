@@ -35,6 +35,10 @@ private:
 	void AddToActionLog(const std::string& action);
 	std::string GetNextColor();
 
+	void CalculateValidMoves(int moveRange);
+	void DisplayValidMoves();
+	void ClearValidMoves();
+
 public:
 	std::vector<std::string> UpdateCharacterPositionInMap(Character* Target, Vector2i PrevPosition);
 
@@ -52,6 +56,7 @@ private:
 
 	int _mTurn;
 	char _mAttackSymbol = '*';
+	std::vector<Vector2i> _mValidMoves;
 
 	enum class GameState { Moving, Attacking };
 	GameState _mCurrentState = GameState::Moving;

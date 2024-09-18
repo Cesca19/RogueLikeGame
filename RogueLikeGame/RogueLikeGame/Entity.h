@@ -3,6 +3,13 @@
 
 struct Vector2i {
 	int x, y;
+
+	bool operator==(const Vector2i& other) const {
+		return x == other.x && y == other.y;
+	}
+	bool operator!=(const Vector2i& other) const {
+		return !(*this == other);
+	}
 };
 
 class Entity {

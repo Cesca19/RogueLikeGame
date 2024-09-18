@@ -45,7 +45,9 @@ void Game::Init() {
                 _mPlayer = std::make_shared<Player>(100, 20, '@');
                 _mPlayer->SetPosition(Vector2i{ x, y });
                 _mPlayer->SetGame(this);
+                _mPlayer->SetMoveLength(4);
                 _mCharacters.push_back(_mPlayer);
+                CalculateValidMoves(_mPlayer->GetMoveLength());
                 break;
             }
                
@@ -78,8 +80,12 @@ void Game::Init() {
                 _mCharacters.push_back(_mMonsters.back());
                 break;
             }
+
             case '#': {
                 _mNavigator = std::make_shared<Navigator>(x, y, '#');
+                _mValidMoves.push_back(Vector2i{ x, y });
+                _mMap[y][x] = ' ';
+                DisplayValidMoves();
                 break;
             }
 
@@ -87,13 +93,6 @@ void Game::Init() {
         }
     }
 
-    for (size_t y = 0; y < _mMap.size(); ++y) {
-        for (size_t x = 0; x < _mMap[y].length(); ++x) {
-            if (_mMap[y][x] == '@' || _mMap[y][x] == '#') {
-                _mMap[y][x] = ' ';
-            }
-        }
-    }
     _mTurn = 0;
 }
 
@@ -151,7 +150,6 @@ void Game::Render() {
     std::vector<std::string> renderMap = _mMap;
     std::vector<std::string> statsOutput = RenderStats();
 
-    // Update renderMap with character positions and colors
     if (_mNavigator && _mCurrentState == GameState::Moving) {
         Vector2i position = _mNavigator->GetPosition();
         if (IsValidMove(position)) {
@@ -170,32 +168,27 @@ void Game::Render() {
         renderMap[position.y][position.x] = (i == _mSelectedMonsterIndex && _mCurrentState == GameState::Attacking) ? '!' : _mAttackSymbol;
     }
 
-    // Render the game board with stats on the right
     size_t maxHeight = std::max(renderMap.size(), statsOutput.size());
-    for (size_t i = 0; i < maxHeight; ++i) {
-        // Render map
-        if (i < renderMap.size()) {
-            for (size_t x = 0; x < renderMap[i].length(); ++x) {
-                char currentChar = renderMap[i][x];
+    for (size_t y = 0; y < maxHeight; ++y) {
+        if (y < renderMap.size()) {
+            for (size_t x = 0; x < renderMap[y].length(); ++x) {
+                char currentChar = renderMap[y][x];
                 bool charColored = false;
 
-                // Check if the current position matches any character's position
                 for (const auto& character : _mCharacters) {
-                    if (character->GetPosition().x == x && character->GetPosition().y == i) {
+                    if (character->GetX() == x && character->GetY() == y) {
                         std::cout << character->GetColor() << currentChar << RESET;
                         charColored = true;
                         break;
                     }
                 }
 
-                // If it's the navigator's position and we're in moving state
                 if (!charColored && _mNavigator && _mCurrentState == GameState::Moving &&
-                    _mNavigator->GetPosition().x == x && _mNavigator->GetPosition().y == i) {
+                    _mNavigator->GetPosition().x == x && _mNavigator->GetPosition().y == y) {
                     std::cout << _mNavigator->GetColor() << currentChar << RESET;
                     charColored = true;
                 }
 
-                // If the character wasn't colored, print it as is
                 if (!charColored) {
                     std::cout << currentChar;
                 }
@@ -205,11 +198,10 @@ void Game::Render() {
             std::cout << std::string(renderMap[0].length(), ' ');
         }
 
-        std::cout << "    "; // Spacing between map and stats
+        std::cout << "    ";
 
-        // Render stats
-        if (i < statsOutput.size()) {
-            std::cout << statsOutput[i];
+        if (y < statsOutput.size()) {
+            std::cout << statsOutput[y];
         }
 
         std::cout << std::endl;
@@ -335,28 +327,33 @@ void Game::HandleInput() {
 }
 
 void Game::Move() {
-    if (_mNavigator && IsValidMove(_mNavigator->GetPosition())) {
-        Vector2i oldPos = _mPlayer->GetPosition();
-        _mPlayer->SetPosition(_mNavigator->GetPosition());
-        AddToActionLog("Player moved from (" + std::to_string(oldPos.x) + "," +
-            std::to_string(oldPos.y) + ") to (" +
-            std::to_string(_mPlayer->GetPosition().x) + "," +
-            std::to_string(_mPlayer->GetPosition().y) + ")");
+    if (_mNavigator) {
+        Vector2i newPos = _mNavigator->GetPosition();
+        if (std::find(_mValidMoves.begin(), _mValidMoves.end(), newPos) != _mValidMoves.end()) {
+            Vector2i oldPos = _mPlayer->GetPosition();
+            _mPlayer->SetPosition(newPos);
+            AddToActionLog("Player moved from (" + std::to_string(oldPos.x) + "," +
+                std::to_string(oldPos.y) + ") to (" +
+                std::to_string(newPos.x) + "," +
+                std::to_string(newPos.y) + ")");
+            ClearValidMoves();
+            CalculateValidMoves(_mPlayer->GetMoveLength());
+        }
     }
 }
 
 bool Game::IsValidMove(Vector2i position) {
-    if (_mMap[position.y][position.x] == ' ') {
+    if (_mMap[position.y][position.x] == '.') {
         return true;
     }
     return false;
 }
 
+
 void Game::MoveNavigator(int dx, int dy) {
     if (_mNavigator) {
-	    const int newX = _mNavigator->GetX() + dx;
-	    const int newY = _mNavigator->GetY() + dy;
-        if (IsValidMove(Vector2i { newX, newY })) {
+        Vector2i newPos = { _mNavigator->GetX() + dx, _mNavigator->GetY() + dy };
+        if (IsValidMove(newPos)) {
             _mNavigator->Move(dx, dy);
         }
     }
@@ -392,12 +389,14 @@ void Game::EnterAttackMode() {
     _mCurrentState = GameState::Attacking;
     _mAttackableMonsters = GetAttackableMonsters();
     _mSelectedMonsterIndex = 0;
+    ClearValidMoves();
 }
 
 void Game::ExitAttackMode() {
     _mCurrentState = GameState::Moving;
     _mAttackableMonsters.clear();
     _mSelectedMonsterIndex = 0;
+    CalculateValidMoves(_mPlayer->GetMoveLength());
 }
 
 void Game::SelectNextMonster(int direction) {
@@ -441,4 +440,43 @@ std::string Game::GetNextColor() {
     std::string color = _mColors[_mCurrentColorIndex];
     _mCurrentColorIndex = (_mCurrentColorIndex + 1) % _mColors.size();
     return color;
+}
+
+void Game::CalculateValidMoves(int moveRange) {
+    _mValidMoves.clear();
+    Vector2i playerPos = _mPlayer->GetPosition();
+
+    for (int dy = -moveRange; dy <= moveRange; ++dy) {
+        for (int dx = -moveRange; dx <= moveRange; ++dx) {
+            if (abs(dx) + abs(dy) <= moveRange) {
+                Vector2i newPos = { playerPos.x + dx, playerPos.y + dy };
+
+                if (newPos.y >= 0 && newPos.y < _mMap.size() &&
+                    newPos.x >= 0 && newPos.x < _mMap[newPos.y].length()) {
+
+                    if (_mMap[newPos.y][newPos.x] == ' ') {
+                        _mValidMoves.push_back(newPos);
+                    }
+                }
+            }
+        }
+    }
+    DisplayValidMoves();
+}
+
+void Game::DisplayValidMoves() {
+    for (const auto& pos : _mValidMoves) {
+        if (_mMap[pos.y][pos.x] == ' ') {
+            _mMap[pos.y][pos.x] = '.';
+        }
+    }
+}
+
+void Game::ClearValidMoves() {
+    for (const auto& pos : _mValidMoves) {
+        if (_mMap[pos.y][pos.x] == '.') {
+            _mMap[pos.y][pos.x] = ' ';
+        }
+    }
+    _mValidMoves.clear();
 }

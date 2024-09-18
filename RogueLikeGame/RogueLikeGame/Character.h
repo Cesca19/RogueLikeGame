@@ -23,11 +23,16 @@ public:
 	void SetGame(void* CurrentGame);
 	int GetDamageAmount() const { return _mDamageAmount; }
 	int GetHp() const { return _mHp; }
+	int GetMoveLength() const { return _mMoveLength; }
+	void SetMoveLength(int moveLength) {
+		_mMoveLength = moveLength;
+	}
 
 protected:
 	int _mHp;
 	int _mDamageAmount;
 	void* _mGame;
+	int _mMoveLength;
 	//char _mSkin;
 };
 
