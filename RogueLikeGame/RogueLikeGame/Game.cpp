@@ -11,7 +11,28 @@
 #include "Navigator.h"
 #include "Spectre.h"
 
-Game::Game() : _mTurn(0) {}
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
+#define MAGENTA "\033[35m"
+#define CYAN    "\033[36m"
+#define WHITE   "\033[37m"
+#define BRIGHT_RED     "\033[91m"
+#define BRIGHT_GREEN   "\033[92m"
+#define BRIGHT_YELLOW  "\033[93m"
+#define BRIGHT_BLUE    "\033[94m"
+#define BRIGHT_MAGENTA "\033[95m"
+#define BRIGHT_CYAN    "\033[96m"
+
+Game::Game() : _mTurn(0) {
+    _mColors = {
+        RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN,
+        BRIGHT_RED, BRIGHT_GREEN, BRIGHT_YELLOW, BRIGHT_BLUE, BRIGHT_MAGENTA, BRIGHT_CYAN
+    };
+    _mCurrentColorIndex = 0;
+}
 
 Game::~Game() {}
 
@@ -24,7 +45,10 @@ void Game::Init() {
                 _mPlayer = std::make_shared<Player>(100, 20, '@');
                 _mPlayer->SetPosition(Vector2i{ x, y });
                 _mPlayer->SetGame(this);
+                _mPlayer->SetMoveLength(4);
                 _mCharacters.push_back(_mPlayer);
+                _mMap[y][x] = ' ';
+                CalculateValidMoves(_mPlayer->GetMoveLength());
                 break;
             }
                
@@ -32,6 +56,7 @@ void Game::Init() {
                 auto golem = std::make_shared<Golem>(50, 20, 'G', 10);
                 golem->SetPosition(Vector2i{ x, y });
                 golem->SetGame(this);
+                golem->SetColor(GetNextColor());
                 _mMonsters.push_back(golem);
                 _mGameMonsters.push_back(golem);
                 _mCharacters.push_back(_mMonsters.back());
@@ -42,6 +67,7 @@ void Game::Init() {
                 auto spectre = std::make_shared<Spectre>(50, 10, 'S');
                 spectre->SetPosition(Vector2i{ x, y });
                 spectre->SetGame(this);
+                spectre->SetColor(GetNextColor());
                 _mGameMonsters.push_back(spectre);
                 _mMonsters.push_back(spectre);
                 _mCharacters.push_back(_mMonsters.back());
@@ -52,13 +78,18 @@ void Game::Init() {
                 auto faucheur = std::make_shared<Faucheur>(50, 30, 'F');
                 faucheur->SetPosition(Vector2i{ x, y });
                 faucheur->SetGame(this);
+                faucheur->SetColor(GetNextColor());
                 _mMonsters.push_back(faucheur);
                 _mGameMonsters.push_back(faucheur);
                 _mCharacters.push_back(_mMonsters.back());
                 break;
             }
+
             case '#': {
                 _mNavigator = std::make_shared<Navigator>(x, y, '#');
+                _mValidMoves.push_back(Vector2i{ x, y });
+                _mMap[y][x] = ' ';
+                DisplayValidMoves();
                 break;
             }
 
@@ -66,13 +97,6 @@ void Game::Init() {
         }
     }
 
-    for (size_t y = 0; y < _mMap.size(); ++y) {
-        for (size_t x = 0; x < _mMap[y].length(); ++x) {
-            if (_mMap[y][x] == '@' || _mMap[y][x] == '#') {
-                _mMap[y][x] = ' ';
-            }
-        }
-    }
     _mTurn = 0;
 }
 
@@ -96,12 +120,14 @@ void Game::Run() {
 	while (true) {
         switch (_mTurn) {
         case 0:
+            std::cout << "Your turn" << std::endl;
             HandleInput();
             _mTurn = 1;
             break;
         case 1:
             for (int i = 0; i < _mMonsters.size(); i++)
                 _mMonsters[i]->Update(_mCharacters, _mMap);
+            
             _mTurn = 0;
             break;
         default:
@@ -115,7 +141,9 @@ void Game::Render() {
     system("cls");
 
     std::vector<std::string> renderMap = _mMap;
+    std::vector<std::string> statsOutput = RenderStats();
 
+    // Update map with navigator, characters, and attackable monsters
     if (_mNavigator && _mCurrentState == GameState::Moving) {
         Vector2i position = _mNavigator->GetPosition();
         if (IsValidMove(position)) {
@@ -134,23 +162,53 @@ void Game::Render() {
         renderMap[position.y][position.x] = (i == _mSelectedMonsterIndex && _mCurrentState == GameState::Attacking) ? '!' : _mAttackSymbol;
     }
 
-	std::vector<std::string> statsOutput = RenderStats();
-    size_t maxHeight = std::max(renderMap.size(), statsOutput.size());
-    for (size_t i = 0; i < maxHeight; ++i) {
-        if (i < renderMap.size()) {
-            std::cout << renderMap[i];
-        }
-        else {
-            std::cout << std::string(renderMap[0].length(), ' ');
-        }
-        std::cout << "    ";
+    // Render the map
+    for (size_t y = 0; y < renderMap.size(); ++y) {
+        for (size_t x = 0; x < renderMap[y].length(); ++x) {
+            char currentChar = renderMap[y][x];
 
-        if (i < statsOutput.size()) {
-            std::cout << statsOutput[i];
+            if (currentChar == '+' || currentChar == '|') {
+                std::cout << currentChar;
+            }
+            else if (currentChar == '-') {
+                std::cout << "---"; // Expand horizontal borders
+            }
+            else {
+                bool charColored = false;
+
+                for (const auto& character : _mCharacters) {
+                    if (character->GetX() == x && character->GetY() == y) {
+                        std::cout << character->GetColor() << " " << currentChar << " " << RESET;
+                        charColored = true;
+                        break;
+                    }
+                }
+
+                if (!charColored && _mNavigator && _mCurrentState == GameState::Moving &&
+                    _mNavigator->GetPosition().x == x && _mNavigator->GetPosition().y == y) {
+                    std::cout << _mNavigator->GetColor() << " " << currentChar << " " << RESET;
+                    charColored = true;
+                }
+
+                if (!charColored) {
+                    if (currentChar == '.') {
+                        std::cout << "\033[44m   " << RESET; // Blue background for valid moves
+                    }
+                    else {
+                        std::cout << " " << (currentChar == ' ' ? ' ' : currentChar) << " "; // Add spaces around other characters
+                    }
+                }
+            }
+        }
+
+        // Print stats on the right side of the map
+        if (y < statsOutput.size()) {
+            std::cout << "    " << statsOutput[y];
         }
         std::cout << std::endl;
     }
 
+    // Print additional information
     if (_mNavigator && _mCurrentState == GameState::Moving) {
         std::cout << "\nNavigator position: (" << _mNavigator->GetX() << ", " << _mNavigator->GetY() << ")" << std::endl;
     }
@@ -166,15 +224,10 @@ void Game::Render() {
 
     std::cout << "\nControls:\n";
     if (_mCurrentState == GameState::Moving) {
-        std::cout << "Arrow keys: Move navigator\n";
-        std::cout << "Space: Move player to navigator\n";
-        std::cout << "Enter: Enter attack mode\n";
-        std::cout << "Esc: Quit game\n";
+        std::cout << "Arrow keys: Move navigator | Space: Move player | Enter: Attack mode | Esc: Quit\n";
     }
     else if (_mCurrentState == GameState::Attacking) {
-        std::cout << "Arrow keys: Select monster\n";
-        std::cout << "Space: Confirm attack\n";
-        std::cout << "Esc: Exit attack mode\n";
+        std::cout << "Arrow keys: Select monster | Space: Confirm attack | Esc: Exit attack mode\n";
     }
 }
 
@@ -229,7 +282,6 @@ void Game::HandleInput() {
             else if (key == 13) { // Enter key
                 if (!GetAttackableMonsters().empty()) {
                     EnterAttackMode();
-                    actionTaken = true;
                 }
             }
             else if (key == 32) { // Space key
@@ -271,28 +323,33 @@ void Game::HandleInput() {
 }
 
 void Game::Move() {
-    if (_mNavigator && IsValidMove(_mNavigator->GetPosition())) {
-        Vector2i oldPos = _mPlayer->GetPosition();
-        _mPlayer->SetPosition(_mNavigator->GetPosition());
-        AddToActionLog("Player moved from (" + std::to_string(oldPos.x) + "," +
-            std::to_string(oldPos.y) + ") to (" +
-            std::to_string(_mPlayer->GetPosition().x) + "," +
-            std::to_string(_mPlayer->GetPosition().y) + ")");
+    if (_mNavigator) {
+        Vector2i newPos = _mNavigator->GetPosition();
+        if (std::find(_mValidMoves.begin(), _mValidMoves.end(), newPos) != _mValidMoves.end()) {
+            Vector2i oldPos = _mPlayer->GetPosition();
+            _mPlayer->SetPosition(newPos);
+            AddToActionLog("Player moved from (" + std::to_string(oldPos.x) + "," +
+                std::to_string(oldPos.y) + ") to (" +
+                std::to_string(newPos.x) + "," +
+                std::to_string(newPos.y) + ")");
+            ClearValidMoves();
+            CalculateValidMoves(_mPlayer->GetMoveLength());
+        }
     }
 }
 
 bool Game::IsValidMove(Vector2i position) {
-    if (_mMap[position.y][position.x] == ' ') {
+    if (_mMap[position.y][position.x] == '.') {
         return true;
     }
     return false;
 }
 
+
 void Game::MoveNavigator(int dx, int dy) {
     if (_mNavigator) {
-	    const int newX = _mNavigator->GetX() + dx;
-	    const int newY = _mNavigator->GetY() + dy;
-        if (IsValidMove(Vector2i { newX, newY })) {
+        Vector2i newPos = { _mNavigator->GetX() + dx, _mNavigator->GetY() + dy };
+        if (IsValidMove(newPos)) {
             _mNavigator->Move(dx, dy);
         }
     }
@@ -328,12 +385,14 @@ void Game::EnterAttackMode() {
     _mCurrentState = GameState::Attacking;
     _mAttackableMonsters = GetAttackableMonsters();
     _mSelectedMonsterIndex = 0;
+    ClearValidMoves();
 }
 
 void Game::ExitAttackMode() {
     _mCurrentState = GameState::Moving;
     _mAttackableMonsters.clear();
     _mSelectedMonsterIndex = 0;
+    CalculateValidMoves(_mPlayer->GetMoveLength());
 }
 
 void Game::SelectNextMonster(int direction) {
@@ -345,8 +404,9 @@ void Game::AttackMonster(std::vector<std::shared_ptr<Monster>>::const_reference 
     int damage = _mPlayer->GetDamageAmount();
     monster->TakeDamage(damage, _mPlayer.get());
 
-    AddToActionLog("Player attacked " + std::string(1, monster->GetSymbol()) + "who has now " + std::to_string(monster->GetHp()));
-        //" for " + std::to_string(damage) + " damage");
+    AddToActionLog("Player attacked " + monster->GetColor() + std::string(1, monster->GetSymbol()) + RESET +
+        " for " + std::to_string(damage) + " damage");
+
 
     if (monster->GetHp() <= 0) {
         _mMonsters.erase(std::remove(_mMonsters.begin(), _mMonsters.end(), monster), _mMonsters.end());
@@ -382,4 +442,49 @@ std::vector<std::shared_ptr<Character>> Game::GetAllMonsters()
 std::shared_ptr<Player> Game::GetPlayer()
 {
     return _mPlayer;
+}
+
+std::string Game::GetNextColor() {
+    std::string color = _mColors[_mCurrentColorIndex];
+    _mCurrentColorIndex = (_mCurrentColorIndex + 1) % _mColors.size();
+    return color;
+}
+
+void Game::CalculateValidMoves(int moveRange) {
+    _mValidMoves.clear();
+    Vector2i playerPos = _mPlayer->GetPosition();
+
+    for (int dy = -moveRange; dy <= moveRange; ++dy) {
+        for (int dx = -moveRange; dx <= moveRange; ++dx) {
+            if (abs(dx) + abs(dy) <= moveRange) {
+                Vector2i newPos = { playerPos.x + dx, playerPos.y + dy };
+
+                if (newPos.y >= 0 && newPos.y < _mMap.size() &&
+                    newPos.x >= 0 && newPos.x < _mMap[newPos.y].length()) {
+
+                    if (_mMap[newPos.y][newPos.x] == ' ') {
+                        _mValidMoves.push_back(newPos);
+                    }
+                }
+            }
+        }
+    }
+    DisplayValidMoves();
+}
+
+void Game::DisplayValidMoves() {
+    for (const auto& pos : _mValidMoves) {
+        if (_mMap[pos.y][pos.x] == ' ') {
+            _mMap[pos.y][pos.x] = '.';
+        }
+    }
+}
+
+void Game::ClearValidMoves() {
+    for (const auto& pos : _mValidMoves) {
+        if (_mMap[pos.y][pos.x] == '.') {
+            _mMap[pos.y][pos.x] = ' ';
+        }
+    }
+    _mValidMoves.clear();
 }

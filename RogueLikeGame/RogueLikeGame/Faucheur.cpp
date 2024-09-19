@@ -89,8 +89,7 @@ std::vector<Vector2i> Faucheur::GetReachablePosition(Vector2i TargetPosition, st
 
 	for (int i = 0; i < availablePositions.size(); i++) {
 		if (availablePositions[i].x > 0 && availablePositions[i].x < (GameMap[0].size() - 1)
-			&& availablePositions[i].y > 0 && availablePositions[i].y < (GameMap.size() - 1)
-			&& GameMap[availablePositions[i].y][availablePositions[i].x] == ' ')
+			&& availablePositions[i].y > 0 && availablePositions[i].y < (GameMap.size() - 1))
 			reachablePositions.push_back(availablePositions[i]);
 	}
 	return reachablePositions;
