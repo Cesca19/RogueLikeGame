@@ -338,7 +338,7 @@ void Game::HandleInput() {
                     break;
                 }
             }
-            else if (key == 32) { // Enter key
+            else if (key == 32) { // Space key
                 PerformAttack();
                 actionTaken = true;
             }
