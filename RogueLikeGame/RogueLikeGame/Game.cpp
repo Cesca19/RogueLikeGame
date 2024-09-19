@@ -305,7 +305,7 @@ void Game::HandleInput() {
                 int dx = 0, dy = 0;
                 switch (key) {
                 case 72: dy = -1; break; // Up arrow
-                case 80: dy = 1; break;  // Down arrow
+                case 80: dy = 1; break;  // Down arrow 
                 case 75: dx = -1; break; // Left arrow
                 case 77: dx = 1; break;  // Right arrow
                 }
@@ -407,8 +407,10 @@ std::vector<std::shared_ptr<Monster>> Game::GetAttackableMonsters() {
 std::vector<std::string> Game::UpdateCharacterPositionInMap(Character *Target, Vector2i PrevPosition)
 {
     Vector2i position = Target->GetPosition();
-    _mMap[position.y][position.x] = Target->GetSymbol();
+    /*_mMap[position.y][position.x] = Target->GetSymbol();*/
     _mMap[PrevPosition.y][PrevPosition.x] = ' ';
+   // CalculateValidMoves(_mPlayer->GetMoveLength());
+    DisplayValidMoves();
     Render();
     return _mMap;
 }
@@ -437,9 +439,7 @@ void Game::AttackMonster(std::vector<std::shared_ptr<Monster>>::const_reference 
     monster->TakeDamage(damage, _mPlayer.get());
 
     AddToActionLog("Player attacked " + monster->GetColor() + std::string(1, monster->GetSymbol()) + RESET +
-        " for " + std::to_string(damage) + " damage");
-
-
+        " at (" + std::to_string(monster->GetX()) + "," + std::to_string(monster->GetY()) + ")");
     if (monster->GetHp() <= 0) {
         _mMonsters.erase(std::remove(_mMonsters.begin(), _mMonsters.end(), monster), _mMonsters.end());
         _mCharacters.erase(std::remove(_mCharacters.begin(), _mCharacters.end(), monster), _mCharacters.end());
@@ -466,15 +466,6 @@ void Game::AddToActionLog(const std::string& action) {
     Render();
 }
 
-void Game::Debug(std::vector<std::string> GameMap)
-{
-    std::vector<std::string> tmp = _mMap;
-    _mMap = GameMap;
-    Render(); 
-    while( _getch() != 'e');
-   _mMap = tmp;
-}
-
 std::vector<std::shared_ptr<Character>> Game::GetAllMonsters()
 {
     return _mGameMonsters;
@@ -485,10 +476,11 @@ std::shared_ptr<Player> Game::GetPlayer()
     return _mPlayer;
 }
 
+/*
 std::vector<std::string> Game::GetMap()
 {
     return _mMap;
-}
+}*/
 
 std::string Game::GetNextColor() {
     std::string color = _mColors[_mCurrentColorIndex];

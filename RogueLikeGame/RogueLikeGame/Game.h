@@ -17,10 +17,10 @@ public:
 	void Init();
 	void Run();
 	void AddToActionLog(const std::string& action);
-	void Debug(std::vector<std::string> GameMap);
+	//void Debug(std::vector<std::string> GameMap);
 	std::vector<std::shared_ptr<Character>> GetAllMonsters();
 	std::shared_ptr<Player> GetPlayer();
-	std::vector<std::string> GetMap();
+	//std::vector<std::string> GetMap();
 
 
 private:

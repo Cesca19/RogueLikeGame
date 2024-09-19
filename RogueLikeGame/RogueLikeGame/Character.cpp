@@ -18,8 +18,10 @@ Character::~Character()
 void Character::TakeDamage(int DamageAmount, Character* Source)
 {
 	_mHp -= DamageAmount;
-	if (_mHp <= 0)
+	if (_mHp <= 0) {
+		_mHp = 0;
 		OnDeath();
+	}
 }
 
 void Character::SetGame(void* CurrentGame)
