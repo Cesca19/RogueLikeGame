@@ -21,6 +21,7 @@ void Faucheur::Update(std::vector<std::shared_ptr<Character>> GameCharacters, st
 			break;
 	}
 	if (player != nullptr) {
+		GameMap[player->GetY()][player->GetY()] = '@';
 		if (!IsPlayerClose(player))
 			FindNextMove(player, GameMap);
 		if (startPos.x != _mPosition.x || startPos.y != _mPosition.y)
@@ -30,10 +31,89 @@ void Faucheur::Update(std::vector<std::shared_ptr<Character>> GameCharacters, st
 	}
 }
 
-
-
-void Faucheur::MoveTo(Vector2i TargetPosition)
+Vector2i Faucheur::GetLeastF(std::unordered_map<Vector2i, std::pair<Vector2i, Vector2i>> map)
 {
+	int minF = -1, currentF = -1;
+	Vector2i leastF = {-1, -1};
+	for (const auto& point : map) {
+		currentF = point.second.first.x + point.second.first.y;
+		if (currentF < minF && currentF >= 0 || minF == -1) {
+			minF = currentF;
+			leastF = point.first;
+		}
+	}
+	return leastF;
+}
+
+std::vector<Vector2i> Faucheur::GetSuccessors(Vector2i parent, std::vector<std::string> GameMap)
+{
+	std::vector<Vector2i> availablePositions = { {parent.x - 1, parent.y }, {parent.x + 1, parent.y},
+												{ parent.x, parent.y - 1}, {parent.x, parent.y + 1} };
+	std::vector<Vector2i> position;
+
+	for (int i = 0; i < availablePositions.size(); i++) {
+		if (GameMap[availablePositions[i].y][availablePositions[i].x] == ' ' || GameMap[availablePositions[i].y][availablePositions[i].x] == '.' )
+			position.push_back(availablePositions[i]);
+	}
+	return position;
+}
+
+std::vector<Vector2i> Faucheur::GetPathway(Vector2i Dest, std::unordered_map<Vector2i, std::pair<Vector2i, Vector2i>> PrevPos)
+{
+	std::vector<Vector2i> path;
+
+	path.push_back(Dest);
+	Vector2i last = Dest;
+
+	while (1) {
+		auto tmp = PrevPos.find(last);
+		Vector2i prev = tmp->second.second;
+		if (prev.x == -1 && prev.y == -1)
+			break;
+		path.push_back(prev);
+		last = prev;
+	}
+	return path;
+}
+
+
+
+std::vector<Vector2i> Faucheur::MoveTo(Vector2i TargetPosition, std::vector<std::string> GameMap)
+{
+	std::vector<Vector2i> path;
+	///                  pos                g h     parentPos
+	std::unordered_map<Vector2i, std::pair<Vector2i, Vector2i>> openList;
+	std::unordered_map<Vector2i, std::pair<Vector2i, Vector2i>> closedList;
+	openList[_mPosition] = std::make_pair(Vector2i{ 0, 0 }, Vector2i{ -1, -1 });
+
+	while (!openList.empty()) {
+		const Vector2i leastF = GetLeastF(openList);
+		std::pair<Vector2i, Vector2i> leastFValue = openList[leastF];
+
+		openList.erase(openList.find(leastF));
+		std::vector<Vector2i> successors = GetSuccessors(leastF, GameMap);
+		for (int i = 0; i < successors.size(); i++) {
+			if (successors[i].x == TargetPosition.x && successors[i].y == TargetPosition.y) {
+				// goal reached
+				closedList[leastF] = leastFValue;
+				closedList[TargetPosition] = std::make_pair(Vector2i{ 0, 0 }, leastF);;
+				return GetPathway(TargetPosition , closedList);
+				//break;
+			}
+			else {
+				int g = leastFValue.first.x + 1;
+				int h = std::abs(successors[i].x - TargetPosition.x) + std::abs(successors[i].y - TargetPosition.y);
+				auto ans = openList.find(successors[i]);
+				if (ans != openList.end() && (ans->first.x + ans->first.y) < (g + h))
+					continue;
+				auto ansClosed = closedList.find(successors[i]);
+				if (ansClosed != closedList.end() && (ansClosed->first.x + ansClosed->first.y) < (g + h))
+					continue;
+				openList[successors[i]] = std::make_pair(Vector2i{ g, h}, leastF);
+			}
+		}
+		closedList[leastF] = leastFValue;
+	}
 	/* Game* game = static_cast<Game*>(_mGame);
 	int remaningMoves = _mMoveLimit;
 	if (game == nullptr)
@@ -58,6 +138,11 @@ void Faucheur::MoveTo(Vector2i TargetPosition)
 		game->UpdateCharacterPositionInMap(this, Vector2i{ _mPosition.x, _mPosition.y + 1 });
 	}*/
 	//std::cout << "F moved to: (" << _mPosition.x << "," << _mPosition.y << ")" << std::endl;
+	return path;
+}
+
+void Faucheur::MoveTo(Vector2i TargetPosition)
+{
 }
 
 void Faucheur::Reward(std::vector<std::shared_ptr<Character>> GameCharacters)
@@ -95,12 +180,24 @@ std::vector<Vector2i> Faucheur::GetReachablePosition(Vector2i TargetPosition, st
 	return reachablePositions;
 }
 
-std::vector<Vector2i> Faucheur::GetPathTo(Vector2i TargetPosition)
+std::vector<Vector2i> Faucheur::GetPathTo(Vector2i TargetPosition, std::vector<std::string> GameMap)
 {
-	int length = 0;
-	int x = _mPosition.x, y = _mPosition.y;
-	std::vector<Vector2i> pathway;
-	for (; x < TargetPosition.x; ) {
+	//int length = 0;
+	//int x = _mPosition.x, y = _mPosition.y;
+	std::vector<Vector2i> pathway = MoveTo(TargetPosition, GameMap);
+	std::vector<Vector2i> ans;
+	for (int i = pathway.size() - 1; i >= 0; i--) {
+		ans.push_back(pathway[i]);
+	}
+
+	Game* game = static_cast<Game*>(_mGame);
+	for(int  i = 0; i < ans.size(); i++) {
+		GameMap[ans[i].y][ans[i].x] = '*';
+		
+	}
+	game->Debug(GameMap);
+
+	/*for (; x < TargetPosition.x; ) {
 		x++;
 		pathway.push_back({ x, y });
 	}
@@ -116,8 +213,8 @@ std::vector<Vector2i> Faucheur::GetPathTo(Vector2i TargetPosition)
 	for (; y > TargetPosition.y; ) {
 		y--;
 		pathway.push_back({ x, y });
-	}
-	return pathway;
+	}*/
+	return ans;
 }
 
 void Faucheur::FindNextMove(std::shared_ptr<Character> TargetPlayer, std::vector<std::string> GameMap)
@@ -134,7 +231,7 @@ void Faucheur::FindNextMove(std::shared_ptr<Character> TargetPlayer, std::vector
 	int bestPath = -1;
 
 	for (int i = 0; i < reachablePositions.size(); i++) {
-		auto tmp = GetPathTo(reachablePositions[i]);
+		auto tmp = GetPathTo(reachablePositions[i], GameMap);
 		if (tmp.size() < bestSize) {
 			bestSize = tmp.size();
 			bestPath = i;

@@ -1,5 +1,11 @@
 #pragma once
+
+#include <utility>
+#include <unordered_set>
+#include <unordered_map>
+#include <map>
 #include "Character.h"
+
 
 #define RESET   "\033[0m"
 

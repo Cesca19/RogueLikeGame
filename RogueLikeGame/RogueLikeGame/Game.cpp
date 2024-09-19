@@ -434,6 +434,15 @@ void Game::AddToActionLog(const std::string& action) {
     Render();
 }
 
+void Game::Debug(std::vector<std::string> GameMap)
+{
+    std::vector<std::string> tmp = _mMap;
+    _mMap = GameMap;
+    Render(); 
+    while( _getch() != 'e');
+   _mMap = tmp;
+}
+
 std::vector<std::shared_ptr<Character>> Game::GetAllMonsters()
 {
     return _mGameMonsters;
@@ -442,6 +451,11 @@ std::vector<std::shared_ptr<Character>> Game::GetAllMonsters()
 std::shared_ptr<Player> Game::GetPlayer()
 {
     return _mPlayer;
+}
+
+std::vector<std::string> Game::GetMap()
+{
+    return _mMap;
 }
 
 std::string Game::GetNextColor() {

@@ -10,7 +10,24 @@ struct Vector2i {
 	bool operator!=(const Vector2i& other) const {
 		return !(*this == other);
 	}
+	bool operator<(const Vector2i& other) const {
+		return x == other.x && y == other.y;
+	}
+
+	Vector2i& operator=(const Vector2i& other) {
+		x = other.x, y = other.y;
+		return *this;
+	}
 };
+
+namespace std {
+	template <>
+	struct hash<Vector2i> {
+		std::size_t operator()(const Vector2i& v) const noexcept {
+			return std::hash<int>()(v.x) ^ std::hash<int>()(v.y);
+		}
+	};
+}
 
 class Entity {
 public:
