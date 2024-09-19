@@ -20,6 +20,7 @@ public:
 	std::vector<std::shared_ptr<Character>> GetAllMonsters();
 	std::shared_ptr<Player> GetPlayer();
 
+
 private:
 	void LoadMap();
 	void Render();
@@ -41,6 +42,13 @@ private:
 	void CalculateValidMoves(int moveRange);
 	void DisplayValidMoves();
 	void ClearValidMoves();
+
+	void CheckWinLoseCondition();
+	void LoadNextRoom();
+	void EndGame(bool playerWon);
+
+	bool IsGameOver() const { return _mGameOver; }
+	bool HasPlayerWon() const { return _mPlayerWon; }
 
 
 public:
@@ -69,5 +77,11 @@ private:
 	GameState _mCurrentState = GameState::Moving;
 	std::vector<std::shared_ptr<Monster>> _mAttackableMonsters;
 	size_t _mSelectedMonsterIndex = 0;
+
+	int _mCurrentRoom;
+	const int _mTotalRooms = 5;
+	bool _mGameOver;
+	bool _mPlayerWon;
+
 };
 

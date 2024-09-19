@@ -11,25 +11,33 @@
 #include "Navigator.h"
 #include "Spectre.h"
 
-#define RESET   "\033[0m"
-#define RED     "\033[31m"
-#define GREEN   "\033[32m"
-#define YELLOW  "\033[33m"
-#define BLUE    "\033[34m"
-#define MAGENTA "\033[35m"
-#define CYAN    "\033[36m"
-#define WHITE   "\033[37m"
-#define BRIGHT_RED     "\033[91m"
-#define BRIGHT_GREEN   "\033[92m"
-#define BRIGHT_YELLOW  "\033[93m"
-#define BRIGHT_BLUE    "\033[94m"
-#define BRIGHT_MAGENTA "\033[95m"
-#define BRIGHT_CYAN    "\033[96m"
+#define RESET           "\033[0m"
+#define RED             "\033[31m"
+#define GREEN           "\033[32m"
+#define YELLOW          "\033[33m"
+#define BLUE            "\033[34m"
+#define MAGENTA         "\033[35m"
+#define CYAN            "\033[36m"
+#define WHITE           "\033[37m"
+#define BRIGHT_RED      "\033[91m"
+#define BRIGHT_GREEN    "\033[92m"
+#define BRIGHT_YELLOW   "\033[93m"
+#define BRIGHT_BLUE     "\033[94m"
+#define BRIGHT_MAGENTA  "\033[95m"
+#define BRIGHT_CYAN     "\033[96m"
+#define ORANGE          "\033[38;5;208m"
+#define PINK            "\033[38;5;213m"
+#define LIME            "\033[38;5;10m"
+#define TEAL            "\033[38;5;14m"
+#define LAVENDER        "\033[38;5;183m"
+#define BROWN           "\033[38;5;130m"
+#define GRAY            "\033[38;5;240m"
 
-Game::Game() : _mTurn(0) {
+Game::Game() : _mTurn(0), _mCurrentRoom(1), _mGameOver(false), _mPlayerWon(false) {
     _mColors = {
         RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN,
-        BRIGHT_RED, BRIGHT_GREEN, BRIGHT_YELLOW, BRIGHT_BLUE, BRIGHT_MAGENTA, BRIGHT_CYAN
+        BRIGHT_RED, BRIGHT_GREEN, BRIGHT_YELLOW, BRIGHT_BLUE, BRIGHT_MAGENTA, BRIGHT_CYAN,
+        ORANGE, PINK, LIME, TEAL, LAVENDER, BROWN, GRAY, WHITE
     };
     _mCurrentColorIndex = 0;
 }
@@ -42,7 +50,7 @@ void Game::Init() {
         for (int x = 0; x < _mMap[y].length(); ++x) {
             switch (_mMap[y][x]) {
             case '@': {
-                _mPlayer = std::make_shared<Player>(100, 20, '@');
+                _mPlayer = std::make_shared<Player>(1000, 100, '@');
                 _mPlayer->SetPosition(Vector2i{ x, y });
                 _mPlayer->SetGame(this);
                 _mPlayer->SetMoveLength(4);
@@ -101,9 +109,11 @@ void Game::Init() {
 }
 
 void Game::LoadMap() {
-    std::ifstream mapFile("map/map_1.txt");
+    _mMap.clear();
+    std::string filename = "map/map_" + std::to_string(_mCurrentRoom) + ".txt";
+    std::ifstream mapFile(filename);
     if (!mapFile.is_open()) {
-        std::cerr << "Failed to open map file!" << std::endl;
+        std::cerr << "Failed to open map file: " << filename << std::endl;
         return;
     }
 
@@ -116,24 +126,32 @@ void Game::LoadMap() {
 }
 
 void Game::Run() {
-    Render();
-	while (true) {
+    while (!IsGameOver()) {
+        Render();
+
         switch (_mTurn) {
         case 0:
             std::cout << "Your turn" << std::endl;
             HandleInput();
+            CheckWinLoseCondition();
             _mTurn = 1;
             break;
         case 1:
             for (int i = 0; i < _mMonsters.size(); i++)
                 _mMonsters[i]->Update(_mCharacters, _mMap);
-            
             _mTurn = 0;
             break;
         default:
             break;
         }
 	}
+
+    if (_mPlayerWon) {
+        std::cout << "Congratulations! You've cleared all rooms and won the game!" << std::endl;
+    }
+    else {
+        std::cout << "Game Over. You were defeated." << std::endl;
+    }
 }
 
 
@@ -167,10 +185,7 @@ void Game::Render() {
         for (size_t x = 0; x < renderMap[y].length(); ++x) {
             char currentChar = renderMap[y][x];
 
-            if (currentChar == '+' || currentChar == '|') {
-                boardStream << currentChar;
-            }
-            else if (currentChar == '-') {
+            if (currentChar == '-') {
                 boardStream << "---"; // Expand horizontal borders
             }
             else {
@@ -195,7 +210,7 @@ void Game::Render() {
                         boardStream << "\033[44m   " << RESET; // Blue background for valid moves
                     }
                     else {
-                        boardStream << " " << (currentChar == ' ' ? ' ' : currentChar) << " "; // Add spaces around other characters
+                        boardStream << " " << (currentChar == ' ' ? ' ' : currentChar) << " ";
                     }
                 }
             }
@@ -222,6 +237,7 @@ void Game::Render() {
         }
     }
 
+    std::cout << "\nCurrent Room: " << _mCurrentRoom << "/" << _mTotalRooms << std::endl;
     std::cout << "\nControls:\n";
     if (_mCurrentState == GameState::Moving) {
         std::cout << "Arrow keys: Move navigator | Space: Move player | Enter: Attack mode | Esc: Quit\n";
@@ -489,3 +505,35 @@ void Game::ClearValidMoves() {
     }
     _mValidMoves.clear();
 }
+
+void Game::CheckWinLoseCondition() {
+    if (_mPlayer->GetHp() <= 0) {
+        EndGame(false);
+        return;
+    }
+
+    if (_mMonsters.empty()) {
+        if (_mCurrentRoom < _mTotalRooms) {
+            LoadNextRoom();
+        }
+        else {
+            EndGame(true);
+        }
+    }
+}
+
+void Game::LoadNextRoom() {
+    _mCurrentRoom++;
+    _mMonsters.clear();
+    _mGameMonsters.clear();
+    _mCharacters.clear();
+    Init();
+}
+
+void Game::EndGame(bool playerWon) {
+    _mGameOver = true;
+    _mPlayerWon = playerWon;
+}
+
+
+
