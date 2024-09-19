@@ -118,6 +118,7 @@ void Game::Run() {
         switch (_mTurn)
         {
         case 0:
+            std::cout << "Your turn" << std::endl;
             HandleInput();
             _mTurn = 1;
             break;
