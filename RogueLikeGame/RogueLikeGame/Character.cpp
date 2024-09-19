@@ -3,6 +3,7 @@
 Character::Character(int Hp, int DamageAmount, char Skin) : _mHp(Hp), _mDamageAmount(DamageAmount)
 {
 	_mSymbol = Skin;
+	_mMaxHp = _mHp;
 }
 
 Character::~Character()

@@ -22,6 +22,7 @@ public:
 	std::shared_ptr<Player> GetPlayer();
 	std::vector<std::string> GetMap();
 
+
 private:
 	void LoadMap();
 	void Render();
@@ -44,6 +45,14 @@ private:
 	void DisplayValidMoves();
 	void ClearValidMoves();
 
+	void CheckWinLoseCondition();
+	void LoadNextRoom();
+	void EndGame(bool playerWon);
+
+	bool HasPlayerWon() const { return _mPlayerWon; }
+	void RestartGame();
+
+
 public:
 	std::vector<std::string> UpdateCharacterPositionInMap(Character* Target, Vector2i PrevPosition);
 
@@ -65,10 +74,17 @@ private:
 	int _mTurn;
 	char _mAttackSymbol = '*';
 	std::vector<Vector2i> _mValidMoves;
+	int _mMoveLength = 5;
 
 	enum class GameState { Moving, Attacking };
 	GameState _mCurrentState = GameState::Moving;
 	std::vector<std::shared_ptr<Monster>> _mAttackableMonsters;
 	size_t _mSelectedMonsterIndex = 0;
+
+	int _mCurrentRoom;
+	const int _mTotalRooms = 5;
+	bool _mPlayerWon;
+	bool _mRestartGame = false;
+
 };
 

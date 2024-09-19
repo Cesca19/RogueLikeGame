@@ -10,6 +10,7 @@ public:
 	void Update(std::vector<std::shared_ptr<Character>> GameCharacters, std::vector<std::string> GameMap) override;
 	void MoveTo(Vector2i TargetPosition) override;
 	void InreaseDamage(int Amount);
+	void IncreaseHp(int Hp);
 	void RestoreHp();
 	void OnDeath() override;
 
