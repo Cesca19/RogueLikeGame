@@ -27,10 +27,6 @@ void Golem::Update(std::vector<std::shared_ptr<Character>> GameCharacters, std::
 	}
 }
 
-void Golem::MoveTo(Vector2i TargetPosition)
-{
-}
-
 void Golem::Reward(std::vector<std::shared_ptr<Character>> GameCharacters)
 {
 	for (int i = 0; i < GameCharacters.size(); i++) {

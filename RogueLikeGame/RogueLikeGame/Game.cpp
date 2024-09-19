@@ -407,10 +407,9 @@ std::vector<std::shared_ptr<Monster>> Game::GetAttackableMonsters() {
 std::vector<std::string> Game::UpdateCharacterPositionInMap(Character *Target, Vector2i PrevPosition)
 {
     Vector2i position = Target->GetPosition();
-    /*_mMap[position.y][position.x] = Target->GetSymbol();*/
     _mMap[PrevPosition.y][PrevPosition.x] = ' ';
-   // CalculateValidMoves(_mPlayer->GetMoveLength());
-    DisplayValidMoves();
+    ClearValidMoves();
+    CalculateValidMoves(_mPlayer->GetMoveLength());
     Render();
     return _mMap;
 }
