@@ -47,8 +47,8 @@ private:
 	void LoadNextRoom();
 	void EndGame(bool playerWon);
 
-	bool IsGameOver() const { return _mGameOver; }
 	bool HasPlayerWon() const { return _mPlayerWon; }
+	void RestartGame();
 
 
 public:
@@ -72,6 +72,7 @@ private:
 	int _mTurn;
 	char _mAttackSymbol = '*';
 	std::vector<Vector2i> _mValidMoves;
+	int _mMoveLength = 5;
 
 	enum class GameState { Moving, Attacking };
 	GameState _mCurrentState = GameState::Moving;
@@ -80,8 +81,8 @@ private:
 
 	int _mCurrentRoom;
 	const int _mTotalRooms = 5;
-	bool _mGameOver;
 	bool _mPlayerWon;
+	bool _mRestartGame = false;
 
 };
 

@@ -33,7 +33,7 @@
 #define BROWN           "\033[38;5;130m"
 #define GRAY            "\033[38;5;240m"
 
-Game::Game() : _mTurn(0), _mCurrentRoom(1), _mGameOver(false), _mPlayerWon(false) {
+Game::Game() : _mTurn(0), _mCurrentRoom(1), _mPlayerWon(false) {
     _mColors = {
         RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN,
         BRIGHT_RED, BRIGHT_GREEN, BRIGHT_YELLOW, BRIGHT_BLUE, BRIGHT_MAGENTA, BRIGHT_CYAN,
@@ -50,10 +50,10 @@ void Game::Init() {
         for (int x = 0; x < _mMap[y].length(); ++x) {
             switch (_mMap[y][x]) {
             case '@': {
-                _mPlayer = std::make_shared<Player>(1000, 100, '@');
+                _mPlayer = std::make_shared<Player>(500, 100, '@');
                 _mPlayer->SetPosition(Vector2i{ x, y });
                 _mPlayer->SetGame(this);
-                _mPlayer->SetMoveLength(4);
+                _mPlayer->SetMoveLength(_mMoveLength);
                 _mCharacters.push_back(_mPlayer);
                 _mMap[y][x] = ' ';
                 CalculateValidMoves(_mPlayer->GetMoveLength());
@@ -61,7 +61,7 @@ void Game::Init() {
             }
                
             case 'G': {
-                auto golem = std::make_shared<Golem>(50, 20, 'G', 10);
+                auto golem = std::make_shared<Golem>(50, 20, 'G', 10, 20);
                 golem->SetPosition(Vector2i{ x, y });
                 golem->SetGame(this);
                 golem->SetColor(GetNextColor());
@@ -126,32 +126,47 @@ void Game::LoadMap() {
 }
 
 void Game::Run() {
-    while (!IsGameOver()) {
+    while (true) {
         Render();
 
-        switch (_mTurn) {
-        case 0:
-            std::cout << "Your turn" << std::endl;
-            HandleInput();
-            CheckWinLoseCondition();
-            _mTurn = 1;
-            break;
-        case 1:
-            for (int i = 0; i < _mMonsters.size(); i++)
-                _mMonsters[i]->Update(_mCharacters, _mMap);
-            _mTurn = 0;
-            break;
-        default:
-            break;
-        }
-	}
+        if (!_mPlayer->IsDead()) {
+            switch (_mTurn) {
+            case 0:
+                std::cout << "Your turn" << std::endl;
+                HandleInput();
+                CheckWinLoseCondition();
+                if (_mPlayerWon) {
+                    std::cout << "Congratulations! You've cleared all rooms and won the game!" << std::endl;
+                    std::cout << "Press any key to restart..." << std::endl;
+                    _getch();
+                	_mRestartGame = true;
+                }
 
-    if (_mPlayerWon) {
-        std::cout << "Congratulations! You've cleared all rooms and won the game!" << std::endl;
-    }
-    else {
-        std::cout << "Game Over. You were defeated." << std::endl;
-    }
+                _mTurn = 1;
+                break;
+            case 1:
+                for (int i = 0; i < _mMonsters.size(); i++) {
+                    _mMonsters[i]->Update(_mCharacters, _mMap);
+                    CheckWinLoseCondition();
+                }
+                _mTurn = 0;
+                break;
+            default:
+                break;
+            }
+        } else {
+            std::cout << "Game Over. You were defeated." << std::endl;
+            std::cout << "Press any key to restart..." << std::endl;
+            _getch();
+            _mRestartGame = true;
+        }
+
+        if (_mRestartGame) {
+            RestartGame();
+            Run();
+        }
+
+	}
 }
 
 
@@ -254,7 +269,7 @@ std::vector<std::string> Game::RenderStats() {
 
     ss << "Player Stats:\n";
     ss << std::setw(15) << std::left << "Name:" << _mPlayer->GetSymbol() << "\n";
-    ss << std::setw(15) << std::left << "HP:" << _mPlayer->GetHp() << "\n";
+    ss << std::setw(15) << std::left << "HP:" << _mPlayer->GetHp() << "/" << _mPlayer->GetMaxHp() << "\n";
     ss << std::setw(15) << std::left << "ATK:" << _mPlayer->GetDamageAmount() << "\n\n";
 
     if (_mCurrentState == GameState::Attacking && _mSelectedMonsterIndex < _mAttackableMonsters.size()) {
@@ -508,6 +523,7 @@ void Game::ClearValidMoves() {
 
 void Game::CheckWinLoseCondition() {
     if (_mPlayer->GetHp() <= 0) {
+        _mPlayer->SetHp(0);
         EndGame(false);
         return;
     }
@@ -524,16 +540,35 @@ void Game::CheckWinLoseCondition() {
 
 void Game::LoadNextRoom() {
     _mCurrentRoom++;
+
+    int playerHp = _mPlayer->GetHp();
+    int playerDamage = _mPlayer->GetDamageAmount();
+    int playerMoveLength = _mPlayer->GetMoveLength();
+
     _mMonsters.clear();
     _mGameMonsters.clear();
     _mCharacters.clear();
     Init();
+
+    _mPlayer->SetHp(playerHp);
+    _mPlayer->SetDamageAmount(playerDamage);
+    _mPlayer->SetMoveLength(playerMoveLength);
 }
 
 void Game::EndGame(bool playerWon) {
-    _mGameOver = true;
     _mPlayerWon = playerWon;
 }
 
 
+void Game::RestartGame() {
+    _mCurrentRoom = 1;
+    _mPlayerWon = false;
+    _mRestartGame = false;
 
+    _mMonsters.clear();
+    _mGameMonsters.clear();
+    _mCharacters.clear();
+    _mActionLog.clear();
+
+    Init();
+}

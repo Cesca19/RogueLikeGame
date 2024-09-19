@@ -23,13 +23,17 @@ public:
 	void SetGame(void* CurrentGame);
 	int GetDamageAmount() const { return _mDamageAmount; }
 	int GetHp() const { return _mHp; }
+	int GetMaxHp() const { return _mMaxHp; }
 	int GetMoveLength() const { return _mMoveLength; }
-	void SetMoveLength(int moveLength) {
-		_mMoveLength = moveLength;
-	}
+	void SetMoveLength(int moveLength) { _mMoveLength = moveLength; }
+	void SetHp(int hp) { _mHp = hp; }
+	void SetDamageAmount(int dmg) { _mDamageAmount = dmg; }
+	bool IsDead() const { return _mHp <= 0; }
+
 
 protected:
 	int _mHp;
+	int _mMaxHp;
 	int _mDamageAmount;
 	void* _mGame;
 	int _mMoveLength;
