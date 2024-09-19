@@ -1,6 +1,8 @@
 #pragma once
 #include "Character.h"
 
+#define RESET   "\033[0m"
+
 class Monster : public Character
 {
 public:

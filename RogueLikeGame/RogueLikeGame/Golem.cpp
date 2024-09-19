@@ -23,7 +23,7 @@ void Golem::Update(std::vector<std::shared_ptr<Character>> GameCharacters, std::
 	}
 	if (IsPlayerClose(player)) {
 		player->TakeDamage(_mDamageAmount, this);
-		game->AddToActionLog("Golem (G) attacked you and you loose " + std::to_string(_mDamageAmount) + " HP");
+		game->AddToActionLog( GetColor() + "Golem (G)"+  RESET + " attacked you and you loose " + std::to_string(_mDamageAmount) + " HP");
 	}
 }
 
@@ -50,7 +50,7 @@ void Golem::TakeDamage(int Amount, Character * Source)
 		bool canResit = ((rand() % 101) <= _mResistanceWeight) ? true : false;
 		if (canResit) {
 			_mResistanceWeight -= 10;
-			game->AddToActionLog("Golemn (G) resist to your attack");
+			game->AddToActionLog(GetColor() + "Golem (G)" + RESET + " resist to your attack");
 		}
 		else {
 			_mResistanceWeight += 10;
@@ -75,5 +75,5 @@ void Golem::OnDeath()
 		exit(84);
 	std::shared_ptr<Player> player = game->GetPlayer();
 	player->InreaseDamage(_mDamageIncreaseAmount);
-	game->AddToActionLog("Golem (G) increased your ATK by " + std::to_string(_mDamageIncreaseAmount));
+	game->AddToActionLog(GetColor() + "Golem (G)" + RESET + " increased your ATK by " + std::to_string(_mDamageIncreaseAmount));
 }
