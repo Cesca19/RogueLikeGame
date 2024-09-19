@@ -53,31 +53,34 @@ void Game::Init() {
             }
                
             case 'G': {
-                auto golem = std::make_shared<Golem>(100, 20, 'G', 10);
+                auto golem = std::make_shared<Golem>(50, 20, 'G', 10);
                 golem->SetPosition(Vector2i{ x, y });
                 golem->SetGame(this);
                 golem->SetColor(GetNextColor());
                 _mMonsters.push_back(golem);
+                _mGameMonsters.push_back(golem);
                 _mCharacters.push_back(_mMonsters.back());
                 break;
             }
                 
             case 'S': {
-                auto spectre = std::make_shared<Spectre>(100, 10, 'S');
+                auto spectre = std::make_shared<Spectre>(50, 10, 'S');
                 spectre->SetPosition(Vector2i{ x, y });
                 spectre->SetGame(this);
                 spectre->SetColor(GetNextColor());
+                _mGameMonsters.push_back(spectre);
                 _mMonsters.push_back(spectre);
                 _mCharacters.push_back(_mMonsters.back());
                 break;
             }
                 
             case 'F': {
-                auto faucheur = std::make_shared<Faucheur>(100, 30, 'F');
+                auto faucheur = std::make_shared<Faucheur>(50, 30, 'F');
                 faucheur->SetPosition(Vector2i{ x, y });
                 faucheur->SetGame(this);
                 faucheur->SetColor(GetNextColor());
                 _mMonsters.push_back(faucheur);
+                _mGameMonsters.push_back(faucheur);
                 _mCharacters.push_back(_mMonsters.back());
                 break;
             }
@@ -113,29 +116,18 @@ void Game::LoadMap() {
 }
 
 void Game::Run() {
+    Render();
 	while (true) {
-        Render();
-        switch (_mTurn)
-        {
+        switch (_mTurn) {
         case 0:
             std::cout << "Your turn" << std::endl;
             HandleInput();
             _mTurn = 1;
             break;
         case 1:
-            std::cout << "AI turn" << std::endl;
-            for (int i = 0; i < _mMonsters.size(); i++) {
-                Vector2i oldPos = _mMonsters[i]->GetPosition();
+            for (int i = 0; i < _mMonsters.size(); i++)
                 _mMonsters[i]->Update(_mCharacters, _mMap);
-                Vector2i newPos = _mMonsters[i]->GetPosition();
-
-                AddToActionLog(_mMonsters[i]->GetColor() + std::string(1, _mMonsters[i]->GetSymbol()) + RESET +
-                    " moved from (" + std::to_string(oldPos.x) + "," +
-                    std::to_string(oldPos.y) + ") to (" +
-                    std::to_string(newPos.x) + "," +
-                    std::to_string(newPos.y) + ")");
-            }
-
+            
             _mTurn = 0;
             break;
         default:
@@ -246,14 +238,14 @@ std::vector<std::string> Game::RenderStats() {
     ss << "Player Stats:\n";
     ss << std::setw(15) << std::left << "Name:" << _mPlayer->GetSymbol() << "\n";
     ss << std::setw(15) << std::left << "HP:" << _mPlayer->GetHp() << "\n";
-    ss << std::setw(15) << std::left << "Damage:" << _mPlayer->GetDamageAmount() << "\n\n";
+    ss << std::setw(15) << std::left << "ATK:" << _mPlayer->GetDamageAmount() << "\n\n";
 
     if (_mCurrentState == GameState::Attacking && _mSelectedMonsterIndex < _mAttackableMonsters.size()) {
         const auto& monster = _mAttackableMonsters[_mSelectedMonsterIndex];
         ss << "Selected Monster Stats:\n";
         ss << std::setw(15) << std::left << "Name:" << monster->GetSymbol() << "\n";
         ss << std::setw(15) << std::left << "HP:" << monster->GetHp() << "\n";
-        ss << std::setw(15) << std::left << "Damage:" << monster->GetDamageAmount() << "\n\n";
+        ss << std::setw(15) << std::left << "ATK:" << monster->GetDamageAmount() << "\n\n";
     }
 
     ss << "Recent Actions:\n";
@@ -410,10 +402,11 @@ void Game::SelectNextMonster(int direction) {
 
 void Game::AttackMonster(std::vector<std::shared_ptr<Monster>>::const_reference monster) {
     int damage = _mPlayer->GetDamageAmount();
-    monster->TakeDamage(damage);
+    monster->TakeDamage(damage, _mPlayer.get());
 
     AddToActionLog("Player attacked " + monster->GetColor() + std::string(1, monster->GetSymbol()) + RESET +
         " for " + std::to_string(damage) + " damage");
+
 
     if (monster->GetHp() <= 0) {
         _mMonsters.erase(std::remove(_mMonsters.begin(), _mMonsters.end(), monster), _mMonsters.end());
@@ -422,7 +415,7 @@ void Game::AttackMonster(std::vector<std::shared_ptr<Monster>>::const_reference 
         Vector2i position = monster->GetPosition();
         _mMap[position.y][position.x] = ' ';
 
-        AddToActionLog(std::string(1, monster->GetSymbol()) + " was defeated");
+        AddToActionLog(std::string(1, monster->GetSymbol()) + " is defeated");
     }
 }
 
@@ -438,6 +431,17 @@ void Game::AddToActionLog(const std::string& action) {
     if (_mActionLog.size() > MAX_LOG_ENTRIES) {
         _mActionLog.pop_back();
     }
+    Render();
+}
+
+std::vector<std::shared_ptr<Character>> Game::GetAllMonsters()
+{
+    return _mGameMonsters;
+}
+
+std::shared_ptr<Player> Game::GetPlayer()
+{
+    return _mPlayer;
 }
 
 std::string Game::GetNextColor() {

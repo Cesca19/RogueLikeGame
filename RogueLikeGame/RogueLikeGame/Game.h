@@ -16,6 +16,9 @@ public:
 	virtual ~Game();
 	void Init();
 	void Run();
+	void AddToActionLog(const std::string& action);
+	std::vector<std::shared_ptr<Character>> GetAllMonsters();
+	std::shared_ptr<Player> GetPlayer();
 
 private:
 	void LoadMap();
@@ -32,7 +35,7 @@ private:
 	void SelectNextMonster(int direction);
 	void AttackMonster(std::vector<std::shared_ptr<Monster>>::const_reference monster);
 	void PerformAttack();
-	void AddToActionLog(const std::string& action);
+
 	std::string GetNextColor();
 
 	void CalculateValidMoves(int moveRange);
@@ -46,13 +49,16 @@ private:
 	std::shared_ptr<Player> _mPlayer = nullptr;
 	std::shared_ptr<Navigator> _mNavigator = nullptr;
 	std::vector<std::shared_ptr<Monster>> _mMonsters;
+	std::vector<std::shared_ptr<Character>> _mGameMonsters;
 	std::vector<std::shared_ptr<Character>> _mCharacters;
 	std::queue<std::string> _mCombatLog;
 	std::vector<std::string> _mMap;
 	std::deque<std::string> _mActionLog;
-	const size_t MAX_LOG_ENTRIES = 6;
+
+	const size_t MAX_LOG_ENTRIES = 8;
 	std::vector<std::string> _mColors;
 	size_t _mCurrentColorIndex = 0;
+
 
 	int _mTurn;
 	char _mAttackSymbol = '*';
