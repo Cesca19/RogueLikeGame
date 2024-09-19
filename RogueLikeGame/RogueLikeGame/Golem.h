@@ -6,7 +6,7 @@
 class Golem : public Monster
 {
 public:
-	Golem(int Hp, int DamageAmount, char Skin, int DamageIncreaseAmount, int HpIncreaseAmount);
+	Golem(int Hp, int DamageAmount, char Skin, int DamageIncreaseAmount);
 	~Golem();
 	void Update(std::vector<std::shared_ptr<Character>> GameCharacters, std::vector<std::string> GameMap) override;
 	void MoveTo(Vector2i TargetPosition) override;
@@ -16,6 +16,5 @@ public:
 private:
 	int _mResistanceWeight;
 	int _mDamageIncreaseAmount;
-	int _mHpIncreaseAmount;
 };
 

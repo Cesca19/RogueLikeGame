@@ -61,7 +61,7 @@ void Game::Init() {
             }
                
             case 'G': {
-                auto golem = std::make_shared<Golem>(50, 20, 'G', 10, 20);
+                auto golem = std::make_shared<Golem>(100, 20, 'G', 10);
                 golem->SetPosition(Vector2i{ x, y });
                 golem->SetGame(this);
                 golem->SetColor(GetNextColor());
@@ -72,7 +72,7 @@ void Game::Init() {
             }
                 
             case 'S': {
-                auto spectre = std::make_shared<Spectre>(50, 10, 'S');
+                auto spectre = std::make_shared<Spectre>(100, 10, 'S');
                 spectre->SetPosition(Vector2i{ x, y });
                 spectre->SetGame(this);
                 spectre->SetColor(GetNextColor());
@@ -83,7 +83,7 @@ void Game::Init() {
             }
                 
             case 'F': {
-                auto faucheur = std::make_shared<Faucheur>(50, 30, 'F');
+                auto faucheur = std::make_shared<Faucheur>(100, 50, 'F');
                 faucheur->SetPosition(Vector2i{ x, y });
                 faucheur->SetGame(this);
                 faucheur->SetColor(GetNextColor());
@@ -441,8 +441,21 @@ void Game::AttackMonster(std::vector<std::shared_ptr<Monster>>::const_reference 
     AddToActionLog("Player attacked " + monster->GetColor() + std::string(1, monster->GetSymbol()) + RESET +
         " at (" + std::to_string(monster->GetX()) + "," + std::to_string(monster->GetY()) + ")");
     if (monster->GetHp() <= 0) {
+        //_mMap[monster->GetY()][monster->GetX()];
+
+        auto it = std::find(_mMonsters.begin(), _mMonsters.end(),
+            monster);
+        _mMonsters.erase(it);
+        auto it2 = std::find(_mGameMonsters.begin(), _mGameMonsters.end(),
+            monster);
+        _mGameMonsters.erase(it2);
+        auto it1 = std::find(_mCharacters.begin(), _mCharacters.end(),
+            monster);
+        _mCharacters.erase(it1);
+        /*
         _mMonsters.erase(std::remove(_mMonsters.begin(), _mMonsters.end(), monster), _mMonsters.end());
-        _mCharacters.erase(std::remove(_mCharacters.begin(), _mCharacters.end(), monster), _mCharacters.end());
+        _mGameMonsters.erase(std::remove(_mGameMonsters.begin(), _mGameMonsters.end(), monster), _mGameMonsters.end());
+        _mCharacters.erase(std::remove(_mCharacters.begin(), _mCharacters.end(), monster), _mCharacters.end());*/
 
         Vector2i position = monster->GetPosition();
         _mMap[position.y][position.x] = ' ';

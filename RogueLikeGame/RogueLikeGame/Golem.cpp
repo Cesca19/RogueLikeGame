@@ -1,8 +1,8 @@
 #include "Golem.h"
 #include "Game.h"
 
-Golem::Golem(int Hp, int DamageAmount, char Skin, int DamageIncreaseAmount, int HpIncreaseAmount) : 
-	Monster(Hp, DamageAmount, Skin), _mResistanceWeight(40), _mDamageIncreaseAmount(DamageIncreaseAmount), _mHpIncreaseAmount(HpIncreaseAmount)
+Golem::Golem(int Hp, int DamageAmount, char Skin, int DamageIncreaseAmount) : 
+	Monster(Hp, DamageAmount, Skin), _mResistanceWeight(50), _mDamageIncreaseAmount(DamageIncreaseAmount)
 {
 }
 
@@ -75,7 +75,5 @@ void Golem::OnDeath()
 		exit(84);
 	std::shared_ptr<Player> player = game->GetPlayer();
 	player->InreaseDamage(_mDamageIncreaseAmount);
-	player->IncreaseHp(_mHpIncreaseAmount);
 	game->AddToActionLog(GetColor() + "Golem (G)" + RESET + " increased your ATK by " + std::to_string(_mDamageIncreaseAmount));
-	game->AddToActionLog(GetColor() + "Golem (G)" + RESET + " increased your HP by " + std::to_string(_mHpIncreaseAmount));
 }
