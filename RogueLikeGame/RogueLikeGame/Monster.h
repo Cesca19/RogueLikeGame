@@ -9,6 +9,7 @@ public:
 	virtual void Update(std::vector<std::shared_ptr<Character>> GameCharacters, std::vector<std::string> GameMap) = 0;
 	virtual void MoveTo(Vector2i TargetPosition) = 0;
 	virtual void Reward(std::vector<std::shared_ptr<Character>> GameCharacters) = 0;
+	virtual bool IsPlayerClose(std::shared_ptr<Character> TargetPlayer);
 protected:
 	int _mMoveLimit;
 };

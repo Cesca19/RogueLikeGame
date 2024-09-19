@@ -13,6 +13,18 @@ Golem::~Golem()
 void Golem::Update(std::vector<std::shared_ptr<Character>> GameCharacters, std::vector<std::string> GameMap)
 {
 	//golem attck from f
+	std::shared_ptr<Player> player = nullptr;
+	Game* game = static_cast<Game*>(_mGame);
+	
+	for (int i = 0; i < GameCharacters.size(); i++) {
+		player = std::dynamic_pointer_cast<Player>(GameCharacters[i]);
+		if (player != nullptr)
+			break;
+	}
+	if (IsPlayerClose(player)) {
+		player->TakeDamage(_mDamageAmount, this);
+		game->AddToActionLog("Golem (G) attacked you and you loose " + std::to_string(_mDamageAmount) + " HP");
+	}
 }
 
 void Golem::MoveTo(Vector2i TargetPosition)
