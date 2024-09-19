@@ -22,6 +22,11 @@ void Player::InreaseDamage(int Amount)
 	_mDamageAmount += Amount;
 }
 
+void Player::IncreaseHp(int Hp) {
+	_mHp += Hp;
+	if (_mHp > _mMaxHp) _mHp = _mMaxHp;
+}
+
 void Player::RestoreHp()
 {
 	_mHp = _mMaxHp;
