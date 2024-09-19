@@ -143,7 +143,6 @@ void Game::Render() {
     std::vector<std::string> renderMap = _mMap;
     std::vector<std::string> statsOutput = RenderStats();
 
-    // Update map with navigator, characters, and attackable monsters
     if (_mNavigator && _mCurrentState == GameState::Moving) {
         Vector2i position = _mNavigator->GetPosition();
         if (IsValidMove(position)) {
@@ -162,23 +161,24 @@ void Game::Render() {
         renderMap[position.y][position.x] = (i == _mSelectedMonsterIndex && _mCurrentState == GameState::Attacking) ? '!' : _mAttackSymbol;
     }
 
-    // Render the map
+    std::ostringstream boardStream;
+
     for (size_t y = 0; y < renderMap.size(); ++y) {
         for (size_t x = 0; x < renderMap[y].length(); ++x) {
             char currentChar = renderMap[y][x];
 
             if (currentChar == '+' || currentChar == '|') {
-                std::cout << currentChar;
+                boardStream << currentChar;
             }
             else if (currentChar == '-') {
-                std::cout << "---"; // Expand horizontal borders
+                boardStream << "---"; // Expand horizontal borders
             }
             else {
                 bool charColored = false;
 
                 for (const auto& character : _mCharacters) {
                     if (character->GetX() == x && character->GetY() == y) {
-                        std::cout << character->GetColor() << " " << currentChar << " " << RESET;
+                        boardStream << character->GetColor() << " " << currentChar << " " << RESET;
                         charColored = true;
                         break;
                     }
@@ -186,29 +186,29 @@ void Game::Render() {
 
                 if (!charColored && _mNavigator && _mCurrentState == GameState::Moving &&
                     _mNavigator->GetPosition().x == x && _mNavigator->GetPosition().y == y) {
-                    std::cout << _mNavigator->GetColor() << " " << currentChar << " " << RESET;
+                    boardStream << _mNavigator->GetColor() << " " << currentChar << " " << RESET;
                     charColored = true;
                 }
 
                 if (!charColored) {
                     if (currentChar == '.') {
-                        std::cout << "\033[44m   " << RESET; // Blue background for valid moves
+                        boardStream << "\033[44m   " << RESET; // Blue background for valid moves
                     }
                     else {
-                        std::cout << " " << (currentChar == ' ' ? ' ' : currentChar) << " "; // Add spaces around other characters
+                        boardStream << " " << (currentChar == ' ' ? ' ' : currentChar) << " "; // Add spaces around other characters
                     }
                 }
             }
         }
 
-        // Print stats on the right side of the map
         if (y < statsOutput.size()) {
-            std::cout << "    " << statsOutput[y];
+            boardStream << "    " << statsOutput[y];
         }
-        std::cout << std::endl;
+        boardStream << "\n";
     }
 
-    // Print additional information
+    std::cout << boardStream.str();
+
     if (_mNavigator && _mCurrentState == GameState::Moving) {
         std::cout << "\nNavigator position: (" << _mNavigator->GetX() << ", " << _mNavigator->GetY() << ")" << std::endl;
     }
@@ -230,6 +230,7 @@ void Game::Render() {
         std::cout << "Arrow keys: Select monster | Space: Confirm attack | Esc: Exit attack mode\n";
     }
 }
+
 
 std::vector<std::string> Game::RenderStats() {
     std::vector<std::string> statsOutput;

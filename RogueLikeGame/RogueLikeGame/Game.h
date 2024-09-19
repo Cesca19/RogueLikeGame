@@ -42,6 +42,7 @@ private:
 	void DisplayValidMoves();
 	void ClearValidMoves();
 
+
 public:
 	std::vector<std::string> UpdateCharacterPositionInMap(Character* Target, Vector2i PrevPosition);
 
