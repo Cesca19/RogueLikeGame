@@ -1,7 +1,15 @@
 #pragma once
+#include <string>
 
 struct Vector2i {
 	int x, y;
+
+	bool operator==(const Vector2i& other) const {
+		return x == other.x && y == other.y;
+	}
+	bool operator!=(const Vector2i& other) const {
+		return !(*this == other);
+	}
 };
 
 class Entity {
@@ -15,9 +23,12 @@ public:
 		_mPosition = newPosition;
 	}
 
+	void SetColor(const std::string& color) { _mColor = color; }
+	const std::string& GetColor() const { return _mColor; }
+
 protected:
 	Vector2i _mPosition;
 	char _mSymbol;
-
+	std::string _mColor;
 };
 

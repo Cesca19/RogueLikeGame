@@ -35,7 +35,12 @@ private:
 	void SelectNextMonster(int direction);
 	void AttackMonster(std::vector<std::shared_ptr<Monster>>::const_reference monster);
 	void PerformAttack();
-	
+
+	std::string GetNextColor();
+
+	void CalculateValidMoves(int moveRange);
+	void DisplayValidMoves();
+	void ClearValidMoves();
 
 public:
 	std::vector<std::string> UpdateCharacterPositionInMap(Character* Target, Vector2i PrevPosition);
@@ -49,10 +54,15 @@ private:
 	std::queue<std::string> _mCombatLog;
 	std::vector<std::string> _mMap;
 	std::deque<std::string> _mActionLog;
+
 	const size_t MAX_LOG_ENTRIES = 8;
+	std::vector<std::string> _mColors;
+	size_t _mCurrentColorIndex = 0;
+
 
 	int _mTurn;
 	char _mAttackSymbol = '*';
+	std::vector<Vector2i> _mValidMoves;
 
 	enum class GameState { Moving, Attacking };
 	GameState _mCurrentState = GameState::Moving;

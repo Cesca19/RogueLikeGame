@@ -12,7 +12,10 @@ public:
 	void InreaseDamage(int Amount);
 	void RestoreHp();
 	void OnDeath() override;
+
+
 private:
 	int _mMaxHp;
+
 };
 
