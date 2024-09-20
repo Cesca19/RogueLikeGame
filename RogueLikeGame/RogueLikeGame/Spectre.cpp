@@ -10,6 +10,10 @@ Spectre::~Spectre()
 
 Vector2i Spectre::GetRunawayDirection(std::vector<std::string> GameMap, Vector2i Dest)
 {
+    if ((rand() % 101) < 50) {
+        return { -1, -1 };
+    }
+
     std::pair<int, int> ans = { -1, -1};
     std::set<std::pair<int, int>> seen;
     std::deque<std::tuple<int, int, int>> to_see;
@@ -24,6 +28,7 @@ Vector2i Spectre::GetRunawayDirection(std::vector<std::string> GameMap, Vector2i
     int current_y = 0;
     int neighbor_x = 0;
     int neighbor_y = 0;
+    int moveLimit = rand() % _mMoveLimit;
     
     std::vector<std::pair<int, int>> directions = { {0, 1}, {0, -1}, {1, 0}, {-1, 0} };
 
@@ -36,7 +41,7 @@ Vector2i Spectre::GetRunawayDirection(std::vector<std::string> GameMap, Vector2i
         current_x = std::get<0>(current);
         current_y = std::get<1>(current);
         steps = std::get<2>(current);
-        if (steps > _mMoveLimit)
+        if (steps > moveLimit)
             break;
         for (const auto& dir : directions) {
             neighbor_x = current_x + dir.first;
@@ -109,7 +114,7 @@ void Spectre::Update(std::vector<std::shared_ptr<Character>> GameCharacters, std
                 SetPosition(pathway[i]);
                 game->UpdateCharacterPositionInMap(this, prevPos);
             }
-            game->AddToActionLog(GetColor() + "Spectre (F)" + RESET + " moved from (" + std::to_string(startPos.x) + "," + std::to_string(startPos.y) + ") to ("
+            game->AddToActionLog(GetColor() + "Spectre (S)" + RESET + " moved from (" + std::to_string(startPos.x) + "," + std::to_string(startPos.y) + ") to ("
                 + std::to_string(targetPosition.x) + "," + std::to_string(targetPosition.y) + ")");
             return;
         }
